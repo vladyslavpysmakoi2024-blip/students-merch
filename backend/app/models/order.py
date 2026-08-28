@@ -1,10 +1,15 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING # ignoring this in runtime
+
 from sqlalchemy import (
     Integer, Text, Boolean, ForeignKey, Column, String, LargeBinary, DateTime
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..database import Base
-import app.models
+from app.database import Base
+
+if TYPE_CHECKING:
+    from app.models import User, OrderContent
 
 class Order(Base):
     __tablename__ = "order"
@@ -17,9 +22,9 @@ class Order(Base):
     date: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
     id_user: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
 
-    user: Mapped["User"] = relationship("User", back_populates="orders")
+    user: Mapped[User] = relationship("User", back_populates="orders")
 
-    order_content: Mapped[list["OrderContent"]] = relationship(
+    order_content: Mapped[list[OrderContent]] = relationship(
         "OrderContent",
         back_populates="order",
         cascade="all, delete-orphan"

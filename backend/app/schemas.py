@@ -1,17 +1,18 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
-from typing import Optional, List
+# ??? import app.models
 from datetime import datetime
-from typing import Optional, List, Union, Any
-import app.models
+
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+# ??? from typing import Optional, List
+# ??? from typing import Optional, List, Union, Any
 
 
 class ClothingSimpleSchema(BaseModel):
     id: int
-    name: Optional[str] = None
-    type: Optional[str] = None
-    color: Optional[str] = None
-    price: Optional[float] = None
-    photo: Optional[bytes] = None
+    name: str | None = None
+    type: str | None = None
+    color: str | None = None
+    price: float| None = None
+    photo: bytes | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -61,9 +62,9 @@ class ClothingColoredSchema(BaseModel):
 
 
 class UserCreate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    phone_number: Optional[str] = None
+    first_name: str | None = None
+    last_name: str | None = None
+    phone_number: str | None = None
     email: str
     password: str
     model_config = ConfigDict(from_attributes=True)
@@ -78,13 +79,13 @@ class UserPasswordUpdate(BaseModel):
     new_password: str
 
 class UserUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    fathers_name: Optional[str] = None
-    phone_number: Optional[str] = None
-    city: Optional[str] = None
-    street: Optional[str] = None
-    house_number: Optional[str] = None
+    first_name: str | None = None
+    last_name: str | None = None
+    fathers_name: str | None = None
+    phone_number: str | None = None
+    city: str | None = None
+    street: str | None = None
+    house_number: str | None = None
 
 
 class FavoriteSchema(BaseModel):
@@ -106,8 +107,8 @@ class OrderCatalogSchema(BaseModel):
 
 class OrderClothingSchema(BaseModel):
     id: int
-    name: Optional[str] = None
-    price: Optional[float] = None
+    name: str | None = None
+    price: float| None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -121,11 +122,11 @@ class OrderContentSchema(BaseModel):
 
 class OrderDetailSchema(BaseModel):
     id: int
-    cost: Optional[float] = None
-    delivery_company: Optional[str] = None
-    delivery_type: Optional[str] = None
-    postal_number: Optional[str] = None
-    date: Optional[datetime] = None
+    cost: float| None = None
+    delivery_company: str | None = None
+    delivery_type: str | None = None
+    postal_number: str | None = None
+    date: datetime | None = None
     order_content: list[OrderContentSchema]
 
     model_config = ConfigDict(from_attributes=True)
@@ -144,7 +145,7 @@ class OrderCreateSchema(BaseModel):
     postal_number: str
     date: datetime
     id_user: int
-    id_clothing: List[int]
+    id_clothing: list[int]
 
     city: str
     street: str

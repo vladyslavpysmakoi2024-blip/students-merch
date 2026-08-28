@@ -1,10 +1,16 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING # ignoring this in runtime
+
 from sqlalchemy import (
     Integer, Text, Boolean, ForeignKey, Column, String, LargeBinary
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..database import Base
-import app.models
+from app.database import Base
+
+
+if TYPE_CHECKING:
+    from app.models import Favorite, Order, Bin
 
 
 class User(Base):
@@ -21,19 +27,19 @@ class User(Base):
     street: Mapped[str | None] = mapped_column(Text, nullable=True)
     house_number: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    favorites: Mapped[list["Favorite"]] = relationship(
+    favorites: Mapped[list[Favorite]] = relationship(
         "Favorite",
         back_populates="user",
         cascade="all, delete-orphan"
     )
 
-    orders: Mapped[list["Order"]] = relationship(
+    orders: Mapped[list[Order]] = relationship(
         "Order",
         back_populates="user",
         cascade="all, delete-orphan"
     )
 
-    bin: Mapped[list["Bin"]] = relationship(
+    bin: Mapped[list[Bin]] = relationship(
         "Bin",
         back_populates="user",
         cascade="all, delete-orphan"

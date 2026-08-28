@@ -1,34 +1,33 @@
 import os
+
 from pathlib import Path
 from authlib.integrations.starlette_client import OAuth
 from dotenv import load_dotenv
 from jose import JWTError,jwt
-from starlette.requests import Request
-from fastapi import Request
+# ??? from starlette.requests import Request
+
 from fastapi.responses import RedirectResponse
-from fastapi import APIRouter, Depends, HTTPException, Query, status, Response, Cookie
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Response, Request, Cookie
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Response
 from sqlalchemy import select, or_, and_, func
-from sqlalchemy import update
-from sqlalchemy.orm import selectinload, joinedload
+# ??? from sqlalchemy import update
+from sqlalchemy.orm import selectinload #??? , joinedload
+
 from datetime import datetime
-from typing import List, Optional
-from .database import get_db, hash_password, verify_password, create_access_token, create_refresh_token,ACCESS_TOKEN_EXPIRE_IN_MINUTES, JWT_SECRET_KEY
-from .dependency import get_current_user
-from .models.clothing import Clothing
-from .models.bin import Bin
-from .models.user import User
-from .models.order import Order
-from .models.favorite import Favorite
-from .models.order_content import OrderContent
-import app.models
-from .schemas import ClothingSimpleSchema, ClothingAdditionalSchema, ClothingColoredSchema, OrderCreateSchema,OrderCreateInfoSchema, FavoriteSchema, ClothingDetailSchema, OrderDetailSchema, OrderCatalogSchema,UserPasswordUpdate
-
-from .models.user import User
-from .schemas import ClothingSimpleSchema, UserCreate, UserLogin, UserUpdate
-
-from .schemas import (
+# ??? from typing import List, Optional / List swaped to feature python like :list[]
+from app.database import ( get_db, hash_password, verify_password, create_access_token, create_refresh_token,
+                           ACCESS_TOKEN_EXPIRE_IN_MINUTES, JWT_SECRET_KEY )
+from app.dependency import get_current_user
+from app.models.clothing import Clothing
+from app.models.bin import Bin
+from app.models.user import User
+from app.models.order import Order
+from app.models.favorite import Favorite
+from app.models.order_content import OrderContent
+# ??? import app.models
+from app.schemas import UserPasswordUpdate
+from app.schemas import (
     ClothingSimpleSchema,
     ClothingDetailSchema,
     ClothingAdditionalSchema,
@@ -85,10 +84,13 @@ async def search_clothing(
 
 @router.get("/filter", response_model=list[ClothingSimpleSchema])
 async def filter_clothing(
-        clothing_type: str = None,
-        color: str = None,
-        min_price: float = None,
-        max_price: float = None,
+        clothing_type: str | None = None,
+        color: str | None = None,
+        min_price: float| None = None,
+        max_price: float| None = None,
+        # Pagination added
+        limit: int = Query(default=50, le=100),
+        offset: int = Query(default=0, ge=0),
         db: AsyncSession = Depends(get_db)
 ):
     query = select(Clothing)
@@ -100,6 +102,8 @@ async def filter_clothing(
         query = query.where(Clothing.price >= min_price)
     if max_price is not None:
         query = query.where(Clothing.price <= max_price)
+
+    query = query.limit(limit).offset(offset) # DO NOT load all data to RAM
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -350,7 +354,7 @@ async def update_user(payload: UserUpdate, db: AsyncSession = Depends(get_db),
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while updating user")
 
 
-@router.get("/favorites", response_model=List[FavoriteSchema])
+@router.get("/favorites", response_model=list[FavoriteSchema])
 async def get_favorites(
         current_user: User = Depends(get_current_user), # Від petro (безпечно)
         db: AsyncSession = Depends(get_db)
@@ -410,7 +414,7 @@ async def get_order_detail(
     return order
 
 # ВІД PETRO (отримуємо замовлення тільки поточного юзера)
-@router.get("/orders", response_model=List[OrderCatalogSchema])
+@router.get("/orders", response_model=list[OrderCatalogSchema])
 async def get_orders_catalog(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)

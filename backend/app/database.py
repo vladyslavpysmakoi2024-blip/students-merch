@@ -1,16 +1,16 @@
 import os
+import bcrypt
+
+from dotenv import load_dotenv
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
-import bcrypt
+
 from jose import jwt
-from datetime import datetime, timedelta
 
-
-from . import settings
-
-from dotenv import load_dotenv
+# ??? from app import settings
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent

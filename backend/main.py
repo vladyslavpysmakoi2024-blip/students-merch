@@ -1,18 +1,21 @@
+import os, sys
 import uvicorn
-import sys
+
 from pathlib import Path
 from dotenv import load_dotenv
-from starlette.middleware.sessions import SessionMiddleware
-import os
-load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env', override=True)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+
+# ??? import app.models
 from app.routers import router as specials_router
-import app.models
+
+load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env', override=True)
 
 app = FastAPI()
 
+# noinspection PyTypeChecker
 app.add_middleware(
     SessionMiddleware,
     secret_key=os.getenv("SESSION_SECRET_KEY", "your-fallback-secret-key-12345")
@@ -23,6 +26,7 @@ origins = [
     "http://127.0.0.1:3000",
 ]
 
+# noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -30,7 +34,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 app.include_router(specials_router)
 
