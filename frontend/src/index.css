@@ -1,0 +1,17 @@
+* {
+  font-family: "Unbounded", sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+:root {
+  --main-blue: #8AB1C7;
+  --main-light: #FDFDF5;
+  --secondary-blue: #3D5690;
+  --secondary-yellow: #EAF3B2;
+}

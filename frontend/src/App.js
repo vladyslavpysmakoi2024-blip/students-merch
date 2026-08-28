@@ -1,0 +1,74 @@
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import Header from "./components/Header";
+import "./App.css";
+
+import Home from "./pages/Home";
+import ProfilePage from "./pages/ProfilePage";
+import SearchPage from "./pages/SearchPage";
+import ProductPage from "./pages/ProductPage";
+import LoginPage from "./pages/LoginPage";
+import Registration from "./components/Registration";
+import CartPage from "./pages/CartPage";
+import FavoritesPage from "./pages/FavoritesPage";
+import { ProtectedRoute } from "./features/auth/ProtectedRoute";
+
+function App() {
+  const location = useLocation();
+
+  const hideHeaderRoutes = ["/login", "/registration"];
+  const shouldShowHeader = !hideHeaderRoutes.includes(location.pathname);
+
+  return (
+    <div className="app">
+      {shouldShowHeader && <Header />}
+
+      <Routes>
+        {/* Публічні маршрути */}
+        <Route path="/" element={<Home />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/registration" element={<Registration />} />
+
+        {/* Захищені маршрути */}
+        <Route
+          path="/product"
+          element={
+            <ProtectedRoute>
+              <ProductPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/favorites"
+          element={
+            <ProtectedRoute>
+              <FavoritesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <CartPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/me"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback для неіснуючих сторінок */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </div>
+  );
+}
+
+export default App;
