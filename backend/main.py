@@ -8,8 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-# ??? import app.models
-from app.routers import router as specials_router
+from app.api.routers import auth, clothing, cart, favorite, order, user
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env', override=True)
 
@@ -35,7 +34,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(specials_router)
+app.include_router(auth.router)
+app.include_router(clothing.router)
+app.include_router(cart.router)
+app.include_router(favorite.router)
+app.include_router(order.router)
+app.include_router(user.router)
 
 if __name__ == "__main__":
     if "runserver" in sys.argv:

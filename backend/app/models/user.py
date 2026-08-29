@@ -1,12 +1,11 @@
-from __future__ import annotations
 from typing import TYPE_CHECKING # ignoring this in runtime
 
 from sqlalchemy import (
-    Integer, Text, Boolean, ForeignKey, Column, String, LargeBinary
+    Integer, Text, String
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.db.database import Base
 
 
 if TYPE_CHECKING:
