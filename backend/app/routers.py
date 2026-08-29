@@ -55,6 +55,7 @@ async def get_clothes_list(db: AsyncSession = Depends(get_db)):
         .where(
             Clothing.quantity >= 1,
         )
+        .order_by(Clothing.id)
     )
 
     result = await db.execute(query)

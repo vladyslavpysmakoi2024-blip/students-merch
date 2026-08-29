@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Optional, List
 from datetime import datetime
 from typing import Optional, List, Union, Any
@@ -11,16 +11,9 @@ class ClothingSimpleSchema(BaseModel):
     type: Optional[str] = None
     color: Optional[str] = None
     price: Optional[float] = None
-    photo: Optional[bytes] = None
+    photos: Optional[List[str]] = None
 
     model_config = ConfigDict(from_attributes=True)
-
-    @field_validator('photo', mode='before')
-    @classmethod
-    def get_first_photo(cls, v):
-        if isinstance(v, list):
-            return v[0] if v else None
-        return v
 
 class CartItemCreate(BaseModel):
     id_clothing: int
@@ -40,7 +33,7 @@ class ClothingDetailSchema(BaseModel):
     price: str | float | None
 
     quantity: int | None
-    photo: bytes | None
+    photos: list[str] | None
 
     model_config = ConfigDict(from_attributes=True)
 

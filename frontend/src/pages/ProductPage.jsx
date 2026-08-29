@@ -1,36 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useCurrentUser } from "../features/auth/useAuth";
-import { api } from "../shared/api/instance";
-// Якщо ти вже виніс запити за моєю попередньою порадою,
-// заміни імпорт api на: import { getProductById } from '../entities/Product/api/productApi';
-export const mockProduct = {
-  id: "101",
-  name: "Оверсайз Худі НУЛП",
-  composition: "80% Бавовна, 20% Поліестер",
-  type: "Худі",
-  color: "Темно-синій",
-  price: 1450,
-  photo: null, // Або можна вставити коротку base64 строку для тестування рендеру картинки
-};
+import {
+  useClothingDetail,
+  useClothingList,
+} from "../features/clothing/useClothing";
+import ProductCard from "../components/ProductCard";
+
+const GALLERY_PAGE_SIZE = 4;
+
 function ProductPage() {
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get("id");
   const navigate = useNavigate();
   const { isLoggedIn } = useCurrentUser();
 
-  const [product, setProduct] = useState();
+  const { clothing: product, isLoading, isError } = useClothingDetail(id);
+  const { clothes } = useClothingList();
+
   const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedPhoto, setSelectedPhoto] = useState(0);
+  const [galleryPage, setGalleryPage] = useState(0);
 
   // Доступні розміри для вибору
   const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
-  Отримання даних про одяг
-    useEffect(() => {
-      api
-        .get(`/clothing/${id}`) // Або getProductById(id)
-        .then((res) => setProduct(res.data))
-        .catch((err) => console.error("Товар не знайдено:", err));
-    }, [id]);
+  useEffect(() => {
+    setSelectedPhoto(0);
+    setGalleryPage(0);
+  }, [id]);
 
   // Стилізація фону сторінки (з гілки колеги)
   useEffect(() => {
@@ -51,7 +49,37 @@ function ProductPage() {
     }
   };
 
-  if (!product) {
+  if (!id) {
+    return (
+      <div
+        style={{
+          padding: "50px",
+          textAlign: "center",
+          color: "#3D5690",
+          fontSize: "18px",
+        }}
+      >
+        Товар не вказано.
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div
+        style={{
+          padding: "50px",
+          textAlign: "center",
+          color: "#3D5690",
+          fontSize: "18px",
+        }}
+      >
+        Не вдалося завантажити товар.
+      </div>
+    );
+  }
+
+  if (isLoading || !product) {
     return (
       <div
         style={{
@@ -66,14 +94,43 @@ function ProductPage() {
     );
   }
 
+  const photos = product.photos?.filter(Boolean) || [];
+  const photoSrc = photos[selectedPhoto] || "/hoodie.png";
+  const relatedProducts = clothes.filter((item) => item.id !== product.id);
+  const galleryPageCount = Math.ceil(
+    relatedProducts.length / GALLERY_PAGE_SIZE,
+  );
+  const galleryProducts = relatedProducts.slice(
+    galleryPage * GALLERY_PAGE_SIZE,
+    galleryPage * GALLERY_PAGE_SIZE + GALLERY_PAGE_SIZE,
+  );
+
   return (
     <main className="product-page container">
       <div className="product-main-content">
         <div className="product-visuals">
           <div className="product-image-card">
-            {/* Якщо фото у base64, можна виводити так: src={`data:image/jpeg;base64,${product.photo}`} */}
-            <img src="hoodie.png" alt={product.name} />
+            <img src={photoSrc} alt={product.name || "Товар"} />
           </div>
+          {photos.length > 0 && (
+            <div className="thumbnail-list">
+              {photos.map((photo, index) => (
+                <button
+                  className={`thumbnail-card ${
+                    selectedPhoto === index ? "active" : ""
+                  }`}
+                  key={index}
+                  onClick={() => setSelectedPhoto(index)}
+                  type="button"
+                >
+                  <img
+                    src={photo}
+                    alt={`${product.name || "Товар"} ${index + 1}`}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="">
@@ -113,6 +170,39 @@ function ProductPage() {
               </div>
             </div>
           </div>
+          {galleryProducts.length > 0 && (
+            <div className="bottom-gallery">
+              <button
+                className="gallery-arrow gallery-arrow--previous"
+                disabled={galleryPage === 0}
+                onClick={() => setGalleryPage((page) => page - 1)}
+                type="button"
+                aria-label="Попередні товари"
+              >
+                ‹
+              </button>
+              <div className="bottom-gallery-track" key={galleryPage}>
+                {galleryProducts.map((item) => (
+                  <Link
+                    className="gallery-card"
+                    key={item.id}
+                    to={`/product?id=${item.id}`}
+                  >
+                    <ProductCard product={item} />
+                  </Link>
+                ))}
+              </div>
+              <button
+                className="gallery-arrow gallery-arrow--next"
+                disabled={galleryPage >= galleryPageCount - 1}
+                onClick={() => setGalleryPage((page) => page + 1)}
+                type="button"
+                aria-label="Наступні товари"
+              >
+                ›
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </main>
