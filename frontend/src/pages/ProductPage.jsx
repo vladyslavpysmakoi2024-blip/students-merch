@@ -24,7 +24,7 @@ function ProductPage() {
   // Доступні розміри для вибору
   const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
-  Отримання даних про одяг
+  // Отримання даних про одяг
     useEffect(() => {
       api
         .get(`/clothing/${id}`) // Або getProductById(id)
