@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user, get_db
-from app.features.cart.schemas import FavoriteCreate, FavoriteSchema
+from app.features.favorite.schemas import FavoriteCreate, FavoriteSchema
 from app.features.user.models import User
 import app.features.favorite.crud as crud_favorite
 
@@ -15,12 +15,15 @@ async def get_favorites(
         current_user: User = Depends(get_current_user),
         db: AsyncSession = Depends(get_db)
 ):
-    # Звертаємося до бази через CRUD
-    favorites = await crud_favorite.get_user_favorites(db, user_id=current_user.id)
-    return list(favorites)
+    favorites = await crud_favorite.get_user_favorites(
+        db,
+        user_id=current_user.id
+    )
+
+    return favorites
 
 
-@router.post("")
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def add_to_favorites(
         data: FavoriteCreate,
         current_user: User = Depends(get_current_user),
@@ -41,4 +44,28 @@ async def add_to_favorites(
         clothing_id=data.id_clothing
     )
 
-    return {"status": "success", "favorite_id": new_favorite.id}
+    return {
+        "status": "success",
+        "favorite_id": new_favorite.id
+    }
+
+
+@router.delete("/{clothing_id}")
+async def delete_from_favorites(
+        clothing_id: int,
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
+):
+    deleted = await crud_favorite.delete_favorite(
+        db=db,
+        user_id=current_user.id,
+        clothing_id=clothing_id
+    )
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Товар не знайдено в обраному"
+        )
+
+    return {"status": "success", "message": "Товар видалено з обраного"}

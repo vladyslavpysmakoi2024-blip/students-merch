@@ -207,7 +207,7 @@ const Registration = () => {
               type="button"
               className="btn-google"
               onClick={() =>
-                (window.location.href = "http://localhost:8000/login/google")
+                (window.location.href = "http://localhost:8000/auth/login/google")
               }
             >
               <svg width="20" height="20" viewBox="0 0 48 48">

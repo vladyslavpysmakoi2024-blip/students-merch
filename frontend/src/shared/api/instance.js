@@ -28,8 +28,8 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       originalRequest &&
       !originalRequest._retry &&
-      originalRequest.url !== "/login" &&
-      originalRequest.url !== "/refresh"
+      originalRequest.url !== "/auth/login" &&
+      originalRequest.url !== "/auth/refresh"
     ) {
       if (!isRefreshing) {
         isRefreshing = true;
@@ -37,7 +37,7 @@ api.interceptors.response.use(
 
         try {
           await axios.post(
-            "http://localhost:8000/refresh",
+            "http://localhost:8000/auth/refresh",
             {},
             { withCredentials: true },
           );

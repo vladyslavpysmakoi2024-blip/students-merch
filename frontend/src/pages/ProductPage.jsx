@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCurrentUser } from "../features/auth/useAuth";
 import { api } from "../shared/api/instance";
 // Якщо ти вже виніс запити за моєю попередньою порадою,
@@ -14,7 +14,8 @@ export const mockProduct = {
   photo: null, // Або можна вставити коротку base64 строку для тестування рендеру картинки
 };
 function ProductPage() {
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get("id");
   const navigate = useNavigate();
   const { isLoggedIn } = useCurrentUser();
 

@@ -23,10 +23,9 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
     hashed_password = hash_password(user_in.password)
 
     # 2. Витягуємо дані зі схеми UserCreate
-    # user_in містить first_name, last_name, phone_number, email та password
     new_user = User(
         email=user_in.email,
-        hashed_password=hashed_password,
+        password=hashed_password,  # <--- ВИПРАВЛЕНО ТУТ
         first_name=user_in.first_name,
         last_name=user_in.last_name,
         phone_number=user_in.phone_number

@@ -24,7 +24,7 @@ async def get_orders_catalog(db: AsyncSession, user_id: int) -> list[dict]:
     query = (
         select(
             Order.id,
-            Order.cost,
+            Order.price,  # <--- Замінили cost на price
             Order.delivery_company,
             Order.date,
             func.count(OrderContent.id).label("items_count")
@@ -38,7 +38,7 @@ async def get_orders_catalog(db: AsyncSession, user_id: int) -> list[dict]:
     return [
         {
             "id": row.id,
-            "cost": row.cost,
+            "cost": str(row.price),  # <--- Повертаємо фронтенду як cost
             "delivery_company": row.delivery_company,
             "date": row.date,
             "items_count": row.items_count
@@ -54,7 +54,7 @@ async def create_order(db: AsyncSession, user: User, payload: OrderCreateSchema)
 
     # Створюємо замовлення
     new_order = Order(
-        cost=payload.cost,
+        price=payload.cost,  # <--- Замінили cost на price
         delivery_company=payload.delivery_company,
         delivery_type=payload.delivery_type,
         postal_number=payload.postal_number,
@@ -62,7 +62,7 @@ async def create_order(db: AsyncSession, user: User, payload: OrderCreateSchema)
         date=datetime.now()
     )
     db.add(new_order)
-    await db.flush() # Отримуємо ID нового замовлення до коміту
+    await db.flush()
 
     # Додаємо товари до замовлення
     for item_id in payload.id_clothing:

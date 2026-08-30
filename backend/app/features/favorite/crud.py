@@ -30,3 +30,23 @@ async def get_user_favorites(db: AsyncSession, user_id: int):
     )
     result = await db.execute(query)
     return result.scalars().all()
+
+
+async def delete_favorite(
+        db: AsyncSession,
+        user_id: int,
+        clothing_id: int
+) -> bool:
+    favorite = await get_favorite(
+        db=db,
+        user_id=user_id,
+        clothing_id=clothing_id
+    )
+
+    if not favorite:
+        return False
+
+    await db.delete(favorite)
+    await db.commit()
+
+    return True

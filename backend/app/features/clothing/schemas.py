@@ -6,7 +6,7 @@ class ClothingSimpleSchema(BaseModel):
     type: str | None = None
     color: str | None = None
     price: float| None = None
-    photo: bytes | None = None
+    photo: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -28,7 +28,8 @@ class ClothingDetailSchema(BaseModel):
     price: str | float | None
 
     quantity: int | None
-    photo: bytes | None
+    photo: str | None = None
+    photos: list[str] | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

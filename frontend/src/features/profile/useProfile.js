@@ -1,9 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addToCart, getFavorites, getOrders } from "./api";
+import { addToCart, getFavorites, getOrders, removeFavorite } from "./api";
+import { addFavorite } from "./api"; // додай в існуючий імпорт
 
 export const profileKeys = {
   favorites: ["favorites"],
   orders: ["orders"],
+  cart: ["cart"]
+};
+
+export const useAddFavorite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: addFavorite,
+    onSuccess: () => {
+      // Одразу оновлюємо кеш, щоб товар з'явився у віш-листі
+      queryClient.invalidateQueries({ queryKey: profileKeys.favorites });
+    },
+  });
 };
 
 export const useFavorites = () => {
@@ -13,6 +27,18 @@ export const useFavorites = () => {
   });
 
   return { favorites: data, isLoading, isError };
+};
+
+export const useRemoveFavorite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: removeFavorite,
+    onSuccess: () => {
+      // Оновлюємо дані після успішного видалення
+      queryClient.invalidateQueries({ queryKey: profileKeys.favorites });
+    },
+  });
 };
 
 export const useOrders = () => {
@@ -30,7 +56,7 @@ export const useAddToCart = () => {
   return useMutation({
     mutationFn: addToCart,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries({ queryKey: profileKeys.cart });
     },
   });
 };

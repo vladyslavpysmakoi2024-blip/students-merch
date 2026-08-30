@@ -204,13 +204,13 @@ function ProfilePage() {
 
   const handleAddFavoriteToCart = (item) => {
     const clothingId = item.clothing?.id;
-    if (!clothingId || !user?.id) {
+    if (!clothingId) {
       alert("Не вдалося додати товар у кошик.");
       return;
     }
 
     addToCart(
-      { clothingId, userId: user.id },
+      { clothingId }, // Передаємо лише ID товару
       {
         onSuccess: () => {
           alert(`Товар "${item.clothing?.name || ""}" додано в кошик.`);

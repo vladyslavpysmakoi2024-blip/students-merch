@@ -9,9 +9,3 @@ class CartItemCreate(BaseModel):
 
 class FavoriteCreate(BaseModel):
     id_clothing: int
-
-
-class FavoriteSchema(BaseModel):
-    id: int
-    clothing: ClothingSimpleSchema
-    model_config = ConfigDict(from_attributes=True)
