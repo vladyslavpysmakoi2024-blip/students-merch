@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCurrentUser } from "../features/auth/useAuth";
 import { api } from "../shared/api/instance";
+import { useAddFavorite, useFavorites, useRemoveFavorite } from "../features/profile/useProfile";
 // Якщо ти вже виніс запити за моєю попередньою порадою,
 // заміни імпорт api на: import { getProductById } from '../entities/Product/api/productApi';
 export const mockProduct = {
@@ -24,6 +25,26 @@ function ProductPage() {
 
   // Доступні розміри для вибору
   const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
+
+  const { favorites } = useFavorites();
+  const { mutate: addFav } = useAddFavorite();
+  const { mutate: removeFav } = useRemoveFavorite();
+
+  // Перевіряємо, чи є поточний товар у списку вподобань
+  const isFavorite = favorites?.some((fav) => fav.clothing?.id === product?.id);
+
+  const handleFavoriteToggle = () => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
+    if (isFavorite) {
+      removeFav(product.id);
+    } else {
+      addFav(product.id);
+    }
+  };
 
   // Отримання даних про одяг
     useEffect(() => {
@@ -80,7 +101,23 @@ function ProductPage() {
         <div className="">
           <div className="product-details">
             <div className="info-section">
-              <h2 className="product-title">{product.name}</h2>
+              {/* Обгортка для сердечка та назви */}
+              <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "15px" }}>
+                <svg
+                  onClick={handleFavoriteToggle}
+                  width="35"
+                  height="35"
+                  viewBox="0 0 24 24"
+                  fill={isFavorite ? "#F23535" : "#b0b0b0"}
+                  style={{ cursor: "pointer", transition: "fill 0.2s ease-in-out", flexShrink: 0 }}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+
+                <h2 className="product-title" style={{ margin: 0 }}>{product.name}</h2>
+              </div>
+
               <p className="material-info">
                 СКЛАД: {product.composition || "БАВОВНА 100%"}
               </p>
