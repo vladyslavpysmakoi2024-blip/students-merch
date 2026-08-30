@@ -1,13 +1,13 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.features.bin.models import Bin
+from app.features.cart.models import Cart
 from app.features.clothing.models import Clothing
 
 async def get_cart_items(db: AsyncSession, user_id: int):
     query = (
-        select(Bin, Clothing)
-        .join(Clothing, Bin.id_clothing == Clothing.id)
-        .where(Bin.id_user == user_id)
+        select(Cart, Clothing)
+        .join(Clothing, Cart.id_clothing == Clothing.id)
+        .where(Cart.id_user == user_id)
     )
     result = await db.execute(query)
     # Повертає список кортежів (tuple), де кожен елемент містить (Bin, Clothing)

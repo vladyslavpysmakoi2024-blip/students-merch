@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 from decimal import Decimal
 
 from sqlalchemy import (
-    Integer, Text, LargeBinary, ARRAY, DECIMAL, VARCHAR
+    Integer, Text, ARRAY, DECIMAL, VARCHAR
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,8 +24,7 @@ class Clothing(Base):
     composition: Mapped[str | None] = mapped_column(Text, nullable=True)
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     quantity: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    photo: Mapped[list[bytes] | None] = mapped_column(ARRAY(LargeBinary), nullable=True)
-
+    photos: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)
 
     favorites: Mapped[list[Favorite]] = relationship(
         "Favorite",

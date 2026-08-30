@@ -16,8 +16,9 @@ class Cart(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
-    id_clothing: Mapped[int | None] = mapped_column(Integer, ForeignKey("clothing.id"), nullable=True)
-    id_user: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    # Прибрали | None та nullable=True, оскільки в БД стоїть Not NULL
+    id_clothing: Mapped[int] = mapped_column(Integer, ForeignKey("clothing.id"))
+    id_user: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"))
 
-    clothing: Mapped[Clothing] = relationship("Clothing", back_populates="bin")
-    user: Mapped[User] = relationship("User", back_populates="bin")
+    clothing: Mapped[Clothing] = relationship("Clothing", back_populates="cart")
+    user: Mapped[User] = relationship("User", back_populates="cart")
