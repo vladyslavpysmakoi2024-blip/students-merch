@@ -9,7 +9,9 @@ from app.db.database import Base
 
 
 if TYPE_CHECKING:
-    from app.models import Favorite, Order, Bin
+    from app.features.favorite.models import Favorite
+    from app.features.order.models import Order
+    from app.features.bin.models import Bin
 
 
 class User(Base):
@@ -43,4 +45,3 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan"
     )
-

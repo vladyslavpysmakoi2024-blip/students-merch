@@ -1,6 +1,6 @@
 from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.clothing import Clothing
+from app.features.clothing.models import Clothing
 
 
 async def get_available_clothes(db: AsyncSession):

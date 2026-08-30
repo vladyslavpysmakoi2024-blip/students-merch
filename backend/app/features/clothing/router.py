@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_db
-from app.schemas.clothing import (
+from app.features.clothing.schemas import (
     ClothingSimpleSchema,
     ClothingDetailSchema,
     ClothingAdditionalSchema,
     ClothingColoredSchema
 )
-from app.crud import crud_clothing
+import app.features.clothing.crud as crud_clothing
 
 router = APIRouter(
     prefix="/clothing",

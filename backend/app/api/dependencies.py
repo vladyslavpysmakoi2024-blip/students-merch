@@ -3,9 +3,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt, JWTError
 
-from app.core.config import JWT_SECRET_KEY
 from app.db.database import AsyncSessionLocal
-from app.models.user import User
+from app.core.config import JWT_SECRET_KEY
+from app.features.user.models import User
 
 
 async def get_db():
@@ -14,7 +14,6 @@ async def get_db():
             yield session
         finally:
             await session.close()
-
 
 # Залежність для отримання поточного користувача
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):

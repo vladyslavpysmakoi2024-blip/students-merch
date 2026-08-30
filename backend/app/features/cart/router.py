@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user, get_db
-from app.models import User
-from app.schemas.cart import CartItemCreate
-from app.crud import crud_cart
+from app.features.user.models import User
+from app.features.cart.schemas import CartItemCreate
+import app.features.cart.crud as crud_cart
 
 router = APIRouter(
     prefix="/cart",

@@ -8,7 +8,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
 
 if TYPE_CHECKING:
-    from app.models import User, Clothing
+    from app.features.user.models import User
+    from app.features.clothing.models import Clothing
 
 class Bin(Base):
     __tablename__ = "bin"

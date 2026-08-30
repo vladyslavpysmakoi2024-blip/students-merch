@@ -8,9 +8,9 @@ from jose import jwt, JWTError
 from app.api.dependencies import get_db
 from app.core.security import verify_password, create_access_token, create_refresh_token
 from app.core.config import ACCESS_TOKEN_EXPIRE_IN_MINUTES, JWT_SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-from app.crud import crud_user
 
-from app.schemas.user import UserCreate, UserLogin
+import app.features.user.crud as crud_user
+from app.features.user.schemas import UserCreate, UserLogin
 
 router = APIRouter(
     prefix="/auth",

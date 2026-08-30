@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from app.schemas.clothing import ClothingSimpleSchema
+from app.features.clothing.schemas import ClothingSimpleSchema
 
 
 class CartItemCreate(BaseModel):

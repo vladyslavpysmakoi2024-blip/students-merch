@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.bin import Bin
-from app.models.clothing import Clothing
+from app.features.bin.models import Bin
+from app.features.clothing.models import Clothing
 
 async def get_cart_items(db: AsyncSession, user_id: int):
     query = (

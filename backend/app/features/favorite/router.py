@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user, get_db
-from app.schemas.cart import FavoriteCreate, FavoriteSchema
-from app.models.user import User
-from app.crud import crud_favorite
+from app.features.cart.schemas import FavoriteCreate, FavoriteSchema
+from app.features.user.models import User
+import app.features.favorite.crud as crud_favorite
 
 
 router = APIRouter(prefix="/favorite",

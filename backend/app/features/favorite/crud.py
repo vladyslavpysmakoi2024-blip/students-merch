@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.favorite import Favorite
+from app.features.favorite.models import Favorite
 
 async def get_favorite(db: AsyncSession, user_id: int, clothing_id: int) -> Favorite | None:
     query = select(Favorite).where(

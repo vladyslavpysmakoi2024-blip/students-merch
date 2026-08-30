@@ -3,10 +3,10 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.user import User
-from app.models.order import Order
-from app.models.order_content import OrderContent
-from app.schemas.order import OrderCreateSchema
+from app.features.user.models import User
+from app.features.order.models import Order
+from app.features.order_content.models import OrderContent
+from app.features.order.schemas import OrderCreateSchema
 
 async def get_order_detail(db: AsyncSession, order_id: int, user_id: int) -> Order | None:
     query = (

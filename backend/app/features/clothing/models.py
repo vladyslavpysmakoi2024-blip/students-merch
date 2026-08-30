@@ -7,7 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 if TYPE_CHECKING:
-    from app.models import Favorite, OrderContent, Bin
+    from app.features.favorite.models import Favorite
+    from app.features.order_content.models import OrderContent
+    from app.features.bin.models import Bin
+
 
 class Clothing(Base):
     __tablename__ = "clothing"
