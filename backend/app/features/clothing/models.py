@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
+from decimal import Decimal
 
 from sqlalchemy import (
-    Integer, Text, LargeBinary, Float, ARRAY
+    Integer, Text, LargeBinary, ARRAY, DECIMAL, VARCHAR
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -9,7 +10,7 @@ from app.db.database import Base
 if TYPE_CHECKING:
     from app.features.favorite.models import Favorite
     from app.features.order_content.models import OrderContent
-    from app.features.bin.models import Bin
+    from app.features.cart.models import Cart
 
 
 class Clothing(Base):
@@ -17,11 +18,11 @@ class Clothing(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     type: Mapped[str | None] = mapped_column(Text, nullable=True)
-    color: Mapped[str | None] = mapped_column(Text, nullable=True)
+    color: Mapped[str | None] = mapped_column(VARCHAR(7), nullable=True) # Збереження HEX-кольорів
     size: Mapped[str | None] = mapped_column(Text, nullable=True)
     name: Mapped[str | None] = mapped_column(Text, nullable=True)
     composition: Mapped[str | None] = mapped_column(Text, nullable=True)
-    price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     quantity: Mapped[int | None] = mapped_column(Integer, nullable=True)
     photo: Mapped[list[bytes] | None] = mapped_column(ARRAY(LargeBinary), nullable=True)
 
@@ -37,8 +38,8 @@ class Clothing(Base):
         cascade="all, delete-orphan"
     )
 
-    bin: Mapped[list[Bin]] = relationship(
-        "Bin",
+    cart: Mapped[list[Cart]] = relationship(
+        "Cart",
         back_populates="clothing",
         cascade="all, delete-orphan"
     )

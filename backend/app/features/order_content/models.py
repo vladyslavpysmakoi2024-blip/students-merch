@@ -8,7 +8,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
 
 if TYPE_CHECKING:
-    from app.models import Clothing, Order
+    from app.features.clothing.models import Clothing
+    from app.features.order.models import Order
 
 class OrderContent(Base):
     __tablename__ = "order_content"

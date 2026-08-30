@@ -11,7 +11,7 @@ from app.db.database import Base
 if TYPE_CHECKING:
     from app.features.favorite.models import Favorite
     from app.features.order.models import Order
-    from app.features.bin.models import Bin
+    from app.features.cart.models import Cart
 
 
 class User(Base):
@@ -40,8 +40,8 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
-    bin: Mapped[list[Bin]] = relationship(
-        "Bin",
+    cart: Mapped[list[Cart]] = relationship(
+        "Cart",
         back_populates="user",
         cascade="all, delete-orphan"
     )
