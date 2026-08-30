@@ -211,6 +211,15 @@ async def get_other_sizes_for_colored(clname: str, clcolor: str, db: AsyncSessio
 
 @router.post("/register")
 async def register_user(userData: UserCreate, db: AsyncSession = Depends(get_db)):
+    existing = await db.execute(
+        select(User.id).where(User.email == userData.email).limit(1)
+    )
+    if existing.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Користувач з таким email вже існує",
+        )
+
     hashed_password = hash_password(userData.password)
     newUser = User(
         first_name=userData.first_name,
