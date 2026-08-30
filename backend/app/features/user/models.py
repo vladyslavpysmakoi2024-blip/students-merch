@@ -1,10 +1,17 @@
+from typing import TYPE_CHECKING # ignoring this in runtime
+
 from sqlalchemy import (
-    Integer, Text, Boolean, ForeignKey, Column, String, LargeBinary
+    Integer, Text, String
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..database import Base
-import app.models
+from app.db.database import Base
+
+
+if TYPE_CHECKING:
+    from app.features.favorite.models import Favorite
+    from app.features.order.models import Order
+    from app.features.cart.models import Cart
 
 
 class User(Base):
@@ -21,21 +28,20 @@ class User(Base):
     street: Mapped[str | None] = mapped_column(Text, nullable=True)
     house_number: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    favorites: Mapped[list["Favorite"]] = relationship(
+    favorites: Mapped[list[Favorite]] = relationship(
         "Favorite",
         back_populates="user",
         cascade="all, delete-orphan"
     )
 
-    orders: Mapped[list["Order"]] = relationship(
+    orders: Mapped[list[Order]] = relationship(
         "Order",
         back_populates="user",
         cascade="all, delete-orphan"
     )
 
-    bin: Mapped[list["Bin"]] = relationship(
-        "Bin",
+    cart: Mapped[list[Cart]] = relationship(
+        "Cart",
         back_populates="user",
         cascade="all, delete-orphan"
     )
-

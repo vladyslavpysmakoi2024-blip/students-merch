@@ -1,18 +1,25 @@
+import os, sys
 import uvicorn
-import sys
+
 from pathlib import Path
 from dotenv import load_dotenv
-from starlette.middleware.sessions import SessionMiddleware
-import os
-load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env', override=True)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import router as specials_router
-import app.models
+from starlette.middleware.sessions import SessionMiddleware
+
+from app.features.auth.router import router as auth_router
+from app.features.clothing.router import router as clothing_router
+from app.features.order.router import router as order_router
+from app.features.user.router import router as user_router
+from app.features.cart.router import router as cart_router
+from app.features.favorite.router import router as favorite_router
+
+load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env', override=True)
 
 app = FastAPI()
 
+# noinspection PyTypeChecker
 app.add_middleware(
     SessionMiddleware,
     secret_key=os.getenv("SESSION_SECRET_KEY", "your-fallback-secret-key-12345")
@@ -23,6 +30,7 @@ origins = [
     "http://127.0.0.1:3000",
 ]
 
+# noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -31,8 +39,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-app.include_router(specials_router)
+app.include_router(auth_router)
+app.include_router(clothing_router)
+app.include_router(cart_router)
+app.include_router(favorite_router)
+app.include_router(order_router)
+app.include_router(user_router)
 
 if __name__ == "__main__":
     if "runserver" in sys.argv:

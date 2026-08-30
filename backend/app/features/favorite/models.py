@@ -1,12 +1,16 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import (
-    Integer, Text, Boolean, ForeignKey, Column
+    Integer, ForeignKey
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..database import Base
-from app.models.user import User
+from app.db.database import Base
 
-import app.models
+if TYPE_CHECKING:
+    from app.features.user.models import User
+    from app.features.clothing.models import Clothing
+
 
 class Favorite(Base):
     __tablename__ = "favorite"
@@ -16,5 +20,5 @@ class Favorite(Base):
     id_clothing: Mapped[int | None] = mapped_column(Integer, ForeignKey("clothing.id"), nullable=True)
     id_user: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
 
-    clothing: Mapped["Clothing"] = relationship("Clothing", back_populates="favorites")
-    user: Mapped["User"] = relationship("User", back_populates="favorites")
+    clothing: Mapped[Clothing] = relationship("Clothing", back_populates="favorites")
+    user: Mapped[User] = relationship("User", back_populates="favorites")

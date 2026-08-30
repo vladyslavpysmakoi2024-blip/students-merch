@@ -1,10 +1,15 @@
+from typing import TYPE_CHECKING # ignoring this in runtime
+
 from sqlalchemy import (
-    Integer, Text, Boolean, ForeignKey, Column
+    Integer, ForeignKey
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..database import Base
-import app.models
+from app.db.database import Base
+
+if TYPE_CHECKING:
+    from app.features.clothing.models import Clothing
+    from app.features.order.models import Order
 
 class OrderContent(Base):
     __tablename__ = "order_content"
@@ -14,5 +19,5 @@ class OrderContent(Base):
     id_clothing: Mapped[int | None] = mapped_column(Integer, ForeignKey("clothing.id"), nullable=True)
     id_order: Mapped[int | None] = mapped_column(Integer, ForeignKey("order.id"), nullable=True)
 
-    clothing: Mapped["Clothing"] = relationship("Clothing", back_populates="order_content")
-    order: Mapped["Order"] = relationship("Order", back_populates="order_content")
+    clothing: Mapped[Clothing] = relationship("Clothing", back_populates="order_content")
+    order: Mapped[Order] = relationship("Order", back_populates="order_content")
