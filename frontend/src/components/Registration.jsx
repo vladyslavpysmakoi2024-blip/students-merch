@@ -53,6 +53,11 @@ const Registration = () => {
         onSuccess: () => {
           navigate("/me");
         },
+        onError: (err) => {
+          setError(
+            err.response?.data?.detail || "Не вдалося зареєструватися",
+          );
+        },
       },
     );
   };

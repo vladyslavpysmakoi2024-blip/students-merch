@@ -7,13 +7,44 @@ import {
   useUpdatePassword,
   useUpdateUser,
 } from "../features/auth/useAuth";
+import {
+  useAddToCart,
+  useFavorites,
+  useOrders,
+} from "../features/profile/useProfile";
+
+const formatPrice = (price) => {
+  if (price == null || price === "") return "—";
+  return `${price} грн`;
+};
+
+const formatOrderDate = (date) => {
+  if (!date) return "—";
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  return parsed.toLocaleDateString("uk-UA");
+};
+
+const clothingPhotoSrc = (photo) => {
+  if (!photo) return null;
+  if (typeof photo === "string" && photo.startsWith("data:")) return photo;
+  return `data:image/jpeg;base64,${photo}`;
+};
+
+const clothingDetails = (clothing) => {
+  const parts = [clothing?.type, clothing?.color].filter(Boolean);
+  return parts.length ? parts.join(" · ") : "—";
+};
 
 function ProfilePage() {
   const navigate = useNavigate();
-  const { user, isLoading } = useCurrentUser();
+  const { user } = useCurrentUser();
   const { mutate: updateUser } = useUpdateUser();
   const { mutate: updatePassword } = useUpdatePassword();
   const { mutate: logout } = useLogout();
+  const { favorites, isLoading: favoritesLoading } = useFavorites();
+  const { orders, isLoading: ordersLoading } = useOrders();
+  const { mutate: addToCart } = useAddToCart();
 
   const [editForm, setEditForm] = useState({
     first_name: user?.first_name || "",
@@ -29,70 +60,6 @@ function ProfilePage() {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-
-  const wishlist = [
-    {
-      id: 1,
-      title: "ХУДІ З ЛОГОТИПОМ",
-      details: "Розмір: M · Колір: Синій",
-      price: "1800 грн",
-    },
-    {
-      id: 2,
-      title: "ФУТБОЛКА ПОЛІТЕХНІКИ",
-      details: "Розмір: L · Колір: Білий",
-      price: "950 грн",
-    },
-  ];
-
-  const saved = [
-    {
-      id: 1,
-      title: "СВІТШОТ OVERSIZE",
-      details: "Може, потім, колись :[",
-      price: "1600 грн",
-    },
-    {
-      id: 2,
-      title: "ШОПЕР З ПРИНТОМ",
-      details: "Однозначно куплю після стипендії",
-      price: "850 грн",
-    },
-  ];
-
-  const orders = [
-    {
-      id: 1,
-      number: "№ 10248",
-      date: "12.03.2026",
-      status: "Доставлено",
-      total: "1800 грн",
-    },
-    {
-      id: 2,
-      number: "№ 10115",
-      date: "03.03.2026",
-      status: "В обробці",
-      total: "950 грн",
-    },
-  ];
-
-  const cards = [
-    {
-      id: 1,
-      type: "Visa",
-      number: "**** 7777",
-      expires: "09/27",
-      holder: "HORBATIUK DANYLO",
-    },
-    {
-      id: 2,
-      type: "Mastercard",
-      number: "**** 7777",
-      expires: "04/28",
-      holder: "HORBATIUK DANYLO",
-    },
-  ];
 
   useEffect(() => {
     const isAnyModalOpen = isEditModalOpen || isPasswordModalOpen;
@@ -235,25 +202,24 @@ function ProfilePage() {
     }));
   };
 
-  const renderCardLogo = (type) => {
-    if (type === "Visa") {
-      return (
-        <div className="payment-logo payment-logo--visa">
-          <span>VISA</span>
-        </div>
-      );
+  const handleAddFavoriteToCart = (item) => {
+    const clothingId = item.clothing?.id;
+    if (!clothingId || !user?.id) {
+      alert("Не вдалося додати товар у кошик.");
+      return;
     }
 
-    if (type === "Mastercard") {
-      return (
-        <div className="payment-logo payment-logo--mc">
-          <span className="mc-circle mc-circle--left"></span>
-          <span className="mc-circle mc-circle--right"></span>
-        </div>
-      );
-    }
-
-    return <div className="payment-logo">{type}</div>;
+    addToCart(
+      { clothingId, userId: user.id },
+      {
+        onSuccess: () => {
+          alert(`Товар "${item.clothing?.name || ""}" додано в кошик.`);
+        },
+        onError: () => {
+          alert("Не вдалося додати товар у кошик.");
+        },
+      },
+    );
   };
 
   return (
@@ -314,28 +280,49 @@ function ProfilePage() {
             </div>
 
             <div className="profile-items-list">
-              {wishlist.map((item) => (
-                <div key={item.id} className="profile-item-card">
-                  <div className="profile-item-image"></div>
+              {favoritesLoading ? (
+                <p className="profile-empty">Завантаження...</p>
+              ) : favorites.length === 0 ? (
+                <p className="profile-empty">У віш-листі поки немає товарів</p>
+              ) : (
+                favorites.map((item) => {
+                  const clothing = item.clothing;
+                  const photoSrc = clothingPhotoSrc(clothing?.photo);
+                  return (
+                    <div key={item.id} className="profile-item-card">
+                      <div
+                        className="profile-item-image"
+                        style={
+                          photoSrc
+                            ? { backgroundImage: `url(${photoSrc})` }
+                            : undefined
+                        }
+                      ></div>
 
-                  <div className="profile-item-content">
-                    <h3 className="profile-item-title">{item.title}</h3>
-                    <p className="profile-item-details">{item.details}</p>
-                  </div>
+                      <div className="profile-item-content">
+                        <h3 className="profile-item-title">
+                          {clothing?.name || "Товар"}
+                        </h3>
+                        <p className="profile-item-details">
+                          {clothingDetails(clothing)}
+                        </p>
+                      </div>
 
-                  <div className="profile-item-side">
-                    <div className="profile-item-price">{item.price}</div>
-                    <button
-                      className="profile-small-btn"
-                      onClick={() =>
-                        alert(`Товар "${item.title}" додано в кошик.`)
-                      }
-                    >
-                      У КОШИК
-                    </button>
-                  </div>
-                </div>
-              ))}
+                      <div className="profile-item-side">
+                        <div className="profile-item-price">
+                          {formatPrice(clothing?.price)}
+                        </div>
+                        <button
+                          className="profile-small-btn"
+                          onClick={() => handleAddFavoriteToCart(item)}
+                        >
+                          У КОШИК
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -345,26 +332,7 @@ function ProfilePage() {
             </div>
 
             <div className="profile-items-list">
-              {saved.map((item) => (
-                <div key={item.id} className="profile-item-card">
-                  <div className="profile-item-image profile-item-image--saved"></div>
-
-                  <div className="profile-item-content">
-                    <h3 className="profile-item-title">{item.title}</h3>
-                    <p className="profile-item-details">{item.details}</p>
-                  </div>
-
-                  <div className="profile-item-side">
-                    <div className="profile-item-price">{item.price}</div>
-                    <button
-                      className="profile-secondary-btn"
-                      onClick={() => navigate("/product")}
-                    >
-                      ПЕРЕГЛЯНУТИ
-                    </button>
-                  </div>
-                </div>
-              ))}
+              <p className="profile-empty">Поки що порожньо</p>
             </div>
           </div>
 
@@ -374,17 +342,32 @@ function ProfilePage() {
             </div>
 
             <div className="profile-orders-list">
-              {orders.map((order) => (
-                <div key={order.id} className="profile-order-card">
-                  <div className="profile-order-main">
-                    <div className="profile-order-number">{order.number}</div>
-                    <div className="profile-order-date">{order.date}</div>
-                  </div>
+              {ordersLoading ? (
+                <p className="profile-empty">Завантаження...</p>
+              ) : orders.length === 0 ? (
+                <p className="profile-empty">Замовлень поки немає</p>
+              ) : (
+                orders.map((order) => (
+                  <div key={order.id} className="profile-order-card">
+                    <div className="profile-order-main">
+                      <div className="profile-order-number">№ {order.id}</div>
+                      <div className="profile-order-date">
+                        {formatOrderDate(order.date)}
+                      </div>
+                    </div>
 
-                  <div className="profile-order-status">{order.status}</div>
-                  <div className="profile-order-total">{order.total}</div>
-                </div>
-              ))}
+                    <div className="profile-order-status">
+                      {order.delivery_company ||
+                        (order.items_count
+                          ? `${order.items_count} тов.`
+                          : "—")}
+                    </div>
+                    <div className="profile-order-total">
+                      {formatPrice(order.cost)}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -394,36 +377,7 @@ function ProfilePage() {
             </div>
 
             <div className="profile-cards-list">
-              {cards.map((card) => (
-                <div
-                  key={card.id}
-                  className={`payment-card ${
-                    card.type === "Mastercard"
-                      ? "payment-card--mc"
-                      : "payment-card--visa"
-                  }`}
-                >
-                  <div className="payment-card-top">
-                    <div className="payment-card-chip"></div>
-                    {renderCardLogo(card.type)}
-                  </div>
-
-                  <div className="payment-card-number">{card.number}</div>
-
-                  <div className="payment-card-bottom">
-                    <div className="payment-card-holder">
-                      <span className="payment-card-label">CARD HOLDER</span>
-                      <span>{card.holder}</span>
-                    </div>
-
-                    <div className="payment-card-expire">
-                      <span className="payment-card-label">EXPIRES</span>
-                      <span>{card.expires}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
+              <p className="profile-empty">Збережених карток немає</p>
               <button
                 className="add-payment-card-btn"
                 onClick={() =>
