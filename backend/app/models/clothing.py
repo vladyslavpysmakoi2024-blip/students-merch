@@ -17,7 +17,9 @@ class Clothing(Base):
     composition: Mapped[str | None] = mapped_column(Text, nullable=True)
     price: Mapped[float | None] = mapped_column(Float, nullable=True)
     quantity: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    photo: Mapped[list[bytes] | None] = mapped_column(ARRAY(LargeBinary), nullable=True)
+    # photos is the name of the column in the database ( Neon ), the line below fixes name mismatch
+    photo: Mapped[list[bytes] | None] = mapped_column(
+    "photos", ARRAY(LargeBinary), nullable=True)
 
 
     favorites: Mapped[list["Favorite"]] = relationship(
