@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user, get_db
 from app.features.user.models import User
-from app.features.cart.schemas import CartItemCreate, CartItemResponse
+from app.features.cart.schemas import CartItemCreate, CartItemResponse, CartItemUpdate
 import app.features.cart.crud as crud_cart
 
 router = APIRouter(
