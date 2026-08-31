@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user, get_db
 from app.features.user.models import User
-from app.features.cart.schemas import CartItemCreate, CartItemUpdate, CartItemResponse
+from app.features.cart.schemas import CartItemCreate, CartItemResponse
 import app.features.cart.crud as crud_cart
 
 router = APIRouter(
@@ -22,19 +22,16 @@ async def get_user_cart(
 
     # 2. Формуємо відповідь (мапінг даних)
     return [
-        {
-            "cart_id": item.Cart.id,
-            "product_id": item.Clothing.id,
-            "name": item.Clothing.name,
-            "price": item.Clothing.price,
-            "size": item.Clothing.size,
-            "color": item.Clothing.color,
-            "photo": item.Clothing.photos[0] if item.Clothing.photos else None,
-            "quantity": item.Cart.quantity,
-        }
+        CartItemResponse(
+            id=item.Cart.id,
+            product_id=item.Clothing.id,
+            name=item.Clothing.name,
+            price=item.Clothing.price,
+            size=item.Clothing.size,
+            color=item.Clothing.color,
+        )
         for item in cart_items
     ]
-
 
 @router.post("")
 async def add_to_cart(

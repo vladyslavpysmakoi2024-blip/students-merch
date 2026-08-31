@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user, get_db
-from app.features.favorite.schemas import FavoriteCreate, FavoriteSchema
+from app.features.favorite.schemas import FavoriteCreate, FavoriteResponse, FavoriteSchema
 from app.features.user.models import User
 import app.features.favorite.crud as crud_favorite
 
@@ -22,8 +22,7 @@ async def get_favorites(
 
     return favorites
 
-
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=FavoriteResponse)
 async def add_to_favorites(
         data: FavoriteCreate,
         current_user: User = Depends(get_current_user),
@@ -36,8 +35,10 @@ async def add_to_favorites(
     )
 
     if existing_favorite:
-        return {"message": "Товар вже в обраному"}
-
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Товар вже в обраному"
+        )
     new_favorite = await crud_favorite.create_favorite(
         db=db,
         user_id=current_user.id,
