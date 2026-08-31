@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header";
 import "./App.css";
 
@@ -13,14 +13,9 @@ import FavoritesPage from "./pages/FavoritesPage";
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 
 function App() {
-  const location = useLocation();
-
-  const hideHeaderRoutes = ["/login", "/registration"];
-  const shouldShowHeader = !hideHeaderRoutes.includes(location.pathname);
-
   return (
     <div className="app">
-      {shouldShowHeader && <Header />}
+      <Header />
 
       <Routes>
         {/* Публічні маршрути */}

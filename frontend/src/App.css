@@ -32,7 +32,7 @@
   height: 80px; /* Робимо трохи ширшим/товстішим по вертикалі */
   width: calc(100% + 40px); /* Робимо його фізично ширшим на 40px */
   max-width: none; /* Знімаємо будь-які обмеження */
-  margin: 35px -20px 0 -20px;
+  margin: 10px -20px 0 -20px;
   background-color: #3d5690; /* ЗАМІНИ ЦЕЙ КОД на той колір, який тобі потрібен із Фігми */
   box-sizing: border-box;
   border-radius: 25px / 20px;
@@ -810,12 +810,27 @@ body.product-page-body .app {
 .login-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-size: 1920px 1080px;
-  background-position: center;
-  position: relative;
+  align-items: flex-start;     /* Замість center притискаємо контейнер до верху */
+  height: calc(100vh - 100px); /* Висота екрана мінус висота хедера */
+  min-height: auto;            /* Вбиваємо старе розтягування */
   padding: 40px;
+  padding-top: 8vh;            /* АДАПТАЦІЯ: відступ форми буде рівно 8% від висоти екрана твого ноута */
+  box-sizing: border-box;
+  position: relative;
+}
+
+.login-wrapper {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+  z-index: 1;
+  margin-top: 50px;
+}
+
+/* Приховуємо іконки у хедері (лупа, вхід, три смужки) для сторінок входу та реєстрації */
+.app:has(.login-container) .header-icons,
+.app:has(.registration-wrapper) .header-icons {
+  display: none !important;
 }
 
 /* Біла картка */
@@ -1023,24 +1038,21 @@ body.product-page-body .app {
 .cat {
   position: absolute;
   pointer-events: none;
+  z-index: 1; 
 }
 
 .cat--bottom-left {
-  position: absolute;
-  bottom: 36.5px;
-  left: 283px;
-  width: 250px;
+  left: -88px;  
+  bottom: -79px;
+  width: 250px;  
   z-index: 10;
-  pointer-events: none;
 }
 
 .cat--right {
-  position: absolute;
-  top: -27px;
-  right: 221px;
-  width: 150px;
-  pointer-events: none;
-  z-index: 10;
+  right: -175px; 
+  top: -10px;
+  transform: translateY(-50%);
+  width: 150px;  
 }
 
 /* =========================================
@@ -1052,7 +1064,7 @@ body.product-page-body .app {
   position: relative;
   width: 100%;
   max-width: 400px;
-  margin-top: 28px;
+  margin-top: 0px;
   z-index: 1;
 }
 
