@@ -1,12 +1,12 @@
 from decimal import Decimal
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, Field
 
 class ClothingSimpleSchema(BaseModel):
     id: int
     name: str | None = None
     type: str | None = None
     color: str | None = None
-    price: Decimal | None = None
+    price: Decimal = Field(max_digits=10, decimal_places=2, examples=['0.00'])
     photo: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -26,7 +26,7 @@ class ClothingDetailSchema(BaseModel):
     name: str | None
     composition: str | None
 
-    price: Decimal | None
+    price: Decimal = Field(max_digits=10, decimal_places=2, examples=['0.00'])
 
     quantity: int | None
     photo: str | None = None

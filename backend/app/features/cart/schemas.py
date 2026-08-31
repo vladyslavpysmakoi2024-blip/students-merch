@@ -11,7 +11,7 @@ class CartItemResponse(BaseModel):
     id: int
     product_id: int
     name: str
-    price: Decimal
+    price: Decimal = Field(max_digits=10, decimal_places=2, examples=['0.00'])
     size: str
     color: str
 
