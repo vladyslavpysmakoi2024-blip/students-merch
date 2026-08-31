@@ -41,3 +41,30 @@ async def create_or_update_cart_item(db: AsyncSession, user_id: int, clothing_id
     await db.commit()
     await db.refresh(new_item)
     return new_item, True  # True означає, що запис створено
+
+
+async def get_cart_item_by_id(db: AsyncSession, user_id: int, cart_id: int) -> Cart | None:
+    query = select(Cart).where(Cart.id == cart_id, Cart.id_user == user_id)
+    result = await db.execute(query)
+    return result.scalar_one_or_none()
+
+
+async def update_cart_item_quantity(db: AsyncSession, user_id: int, cart_id: int, quantity: int) -> Cart | None:
+    item = await get_cart_item_by_id(db, user_id=user_id, cart_id=cart_id)
+    if not item:
+        return None
+
+    item.quantity = quantity
+    await db.commit()
+    await db.refresh(item)
+    return item
+
+
+async def delete_cart_item(db: AsyncSession, user_id: int, cart_id: int) -> bool:
+    item = await get_cart_item_by_id(db, user_id=user_id, cart_id=cart_id)
+    if not item:
+        return False
+
+    await db.delete(item)
+    await db.commit()
+    return True
