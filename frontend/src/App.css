@@ -705,6 +705,15 @@ body.product-page-body .app::before {
   display: block;
 }
 
+.model-card {
+  width: 100%;
+  height: 100%;
+}
+
+#model-container {
+  height: 500px;
+}
+
 .favorite-badge-btn {
   position: absolute;
   top: 14px;
