@@ -22,22 +22,35 @@ function ProductPage() {
 
   const [product, setProduct] = useState();
   const [selectedSize, setSelectedSize] = useState(null);
+  const [heartAnim, setHeartAnim] = useState(false);
+  const [isFavoriteLocal, setIsFavoriteLocal] = useState(false);
 
   // Доступні розміри для вибору
   const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
-  const { favorites } = useFavorites();
+  const { favorites } = useFavorites(isLoggedIn);
   const { mutate: addFav } = useAddFavorite();
   const { mutate: removeFav } = useRemoveFavorite();
 
   // Перевіряємо, чи є поточний товар у списку вподобань
-  const isFavorite = favorites?.some((fav) => fav.clothing?.id === product?.id);
+  const isFavoriteFromApi = favorites?.some((fav) => fav.clothing?.id === product?.id);
+  const isFavorite = isFavoriteLocal || isFavoriteFromApi;
 
   const handleFavoriteToggle = () => {
     if (!isLoggedIn) {
       navigate("/login");
       return;
     }
+
+    // Миттєво перемикаємо локальний стан (для відображення)
+    setIsFavoriteLocal((prev) => !prev);
+
+    // Запускаємо анімацію
+    setHeartAnim(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setHeartAnim(true));
+    });
+    setTimeout(() => setHeartAnim(false), 400);
 
     if (isFavorite) {
       removeFav(product.id);
@@ -47,12 +60,20 @@ function ProductPage() {
   };
 
   // Отримання даних про одяг
-    useEffect(() => {
-      api
-        .get(`/clothing/${id}`) // Або getProductById(id)
-        .then((res) => setProduct(res.data))
-        .catch((err) => console.error("Товар не знайдено:", err));
-    }, [id]);
+  useEffect(() => {
+    if (!id) {
+      setProduct(mockProduct);
+      return;
+    }
+
+    api
+      .get(`/clothing/${id}`)
+      .then((res) => setProduct(res.data))
+      .catch((err) => {
+        console.error("Товар не знайдено, використовуємо демо-товар:", err);
+        setProduct(mockProduct);
+      });
+  }, [id]);
 
   // Стилізація фону сторінки (з гілки колеги)
   useEffect(() => {
@@ -93,30 +114,39 @@ function ProductPage() {
       <div className="product-main-content">
         <div className="product-visuals">
           <div className="product-image-card">
-            {/* Якщо фото у base64, можна виводити так: src={`data:image/jpeg;base64,${product.photo}`} */}
+            <button
+              className={`favorite-badge-btn${heartAnim ? " heart-pop" : ""}`}
+              onClick={handleFavoriteToggle}
+              aria-label="Додати в обране"
+              title="Додати в обране"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill={isFavorite ? "#F23535" : "none"}
+                stroke={isFavorite ? "#F23535" : "#3D5690"}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 21C12 21 1 14.5 1 8.5C1 5.42 3.42 3 6.5 3C8.24 3 10.09 3.81 12 5.08C13.91 3.81 15.76 3 17.5 3C20.58 3 23 5.42 23 8.5C23 14.5 12 21 12 21Z" />
+              </svg>
+            </button>
             <img src="hoodie.png" alt={product.name} />
+          </div>
+
+          <div className="thumbnail-list">
+            <div className="thumbnail-card"></div>
+            <div className="thumbnail-card"></div>
+            <div className="thumbnail-card"></div>
           </div>
         </div>
 
-        <div className="">
+        <div className="product-info-column">
           <div className="product-details">
             <div className="info-section">
-              {/* Обгортка для сердечка та назви */}
-              <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "15px" }}>
-                <svg
-                  onClick={handleFavoriteToggle}
-                  width="35"
-                  height="35"
-                  viewBox="0 0 24 24"
-                  fill={isFavorite ? "#F23535" : "#b0b0b0"}
-                  style={{ cursor: "pointer", transition: "fill 0.2s ease-in-out", flexShrink: 0 }}
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                </svg>
-
-                <h2 className="product-title" style={{ margin: 0 }}>{product.name}</h2>
-              </div>
+              <h2 className="product-title" style={{ marginBottom: "15px" }}>{product.name}</h2>
 
               <p className="material-info">
                 СКЛАД: {product.composition || "БАВОВНА 100%"}
@@ -137,7 +167,6 @@ function ProductPage() {
                     key={size}
                     className={`size-chip ${selectedSize === size ? "active" : ""}`}
                     onClick={() => setSelectedSize(size)}
-                    // Додано базові стилі для активного стану, якщо їх ще немає в CSS
                     style={{
                       background: selectedSize === size ? "#8AB1C7" : "",
                       color: selectedSize === size ? "#FDFDF5" : "",
@@ -150,6 +179,13 @@ function ProductPage() {
                 ))}
               </div>
             </div>
+          </div>
+
+          <div className="bottom-gallery">
+            <div className="gallery-card"></div>
+            <div className="gallery-card"></div>
+            <div className="gallery-card"></div>
+            <div className="gallery-card"></div>
           </div>
         </div>
       </div>

@@ -21,18 +21,11 @@ function App() {
         {/* Публічні маршрути */}
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/product" element={<ProductPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/registration" element={<Registration />} />
 
         {/* Захищені маршрути */}
-        <Route
-          path="/product"
-          element={
-            <ProtectedRoute>
-              <ProductPage />
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="/favorites"
           element={

@@ -20,10 +20,11 @@ export const useAddFavorite = () => {
   });
 };
 
-export const useFavorites = () => {
+export const useFavorites = (enabled = true) => {
   const { data = [], isLoading, isError } = useQuery({
     queryKey: profileKeys.favorites,
     queryFn: getFavorites,
+    enabled: Boolean(enabled),
   });
 
   return { favorites: data, isLoading, isError };
