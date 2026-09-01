@@ -27,6 +27,7 @@ class User(Base):
     city: Mapped[str | None] = mapped_column(Text, nullable=True)
     street: Mapped[str | None] = mapped_column(Text, nullable=True)
     house_number: Mapped[str | None] = mapped_column(Text, nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     favorites: Mapped[list[Favorite]] = relationship(
         "Favorite",

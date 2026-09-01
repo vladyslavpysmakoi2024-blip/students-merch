@@ -1,3 +1,7 @@
+import truststore
+
+truststore.inject_into_ssl()
+
 import os, sys
 import uvicorn
 
@@ -14,6 +18,7 @@ from app.features.order.router import router as order_router
 from app.features.user.router import router as user_router
 from app.features.cart.router import router as cart_router
 from app.features.favorite.router import router as favorite_router
+from app.features.promo.router import router as promo_router
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env', override=True)
 
@@ -45,6 +50,7 @@ app.include_router(cart_router)
 app.include_router(favorite_router)
 app.include_router(order_router)
 app.include_router(user_router)
+app.include_router(promo_router)
 
 if __name__ == "__main__":
     if "runserver" in sys.argv:

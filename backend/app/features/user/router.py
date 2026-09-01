@@ -1,5 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import cloudinary.exceptions
+import cloudinary.uploader
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from app.api.dependencies import get_db, get_current_user
 from app.core.security import verify_password
@@ -12,6 +15,13 @@ router = APIRouter(
     prefix="/user",
     tags=["User"]
 )
+
+ALLOWED_AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_AVATAR_SIZE = 5 * 1024 * 1024
+
+
+def avatar_public_id(user_id: int) -> str:
+    return f"avatars/user_{user_id}"
 
 
 @router.get("/me")
@@ -26,6 +36,7 @@ async def get_user(current_user: User = Depends(get_current_user)):
         "city": current_user.city,
         "street": current_user.street,
         "house_number": current_user.house_number,
+        "avatar_url": current_user.avatar_url,
     }
 
 
@@ -52,6 +63,83 @@ async def update_current_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error while updating user"
         )
+
+
+@router.post("/me/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if file.content_type not in ALLOWED_AVATAR_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Дозволені лише зображення JPEG, PNG або WebP"
+        )
+
+    content = await file.read()
+
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Файл порожній"
+        )
+
+    if len(content) > MAX_AVATAR_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail="Максимальний розмір фото — 5 МБ"
+        )
+
+    try:
+        result = await run_in_threadpool(
+            cloudinary.uploader.upload,
+            content,
+            public_id=avatar_public_id(current_user.id),
+            overwrite=True,
+            invalidate=True,
+            resource_type="image"
+        )
+    except cloudinary.exceptions.Error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Не вдалося завантажити фото. Спробуй ще раз"
+        )
+
+    updated_user = await crud_user.update_avatar(
+        db, db_user=current_user, avatar_url=result["secure_url"]
+    )
+    return {"avatar_url": updated_user.avatar_url}
+
+
+@router.delete("/me/avatar")
+async def delete_avatar(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user.avatar_url:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Фото профілю не встановлено"
+        )
+
+    try:
+        await run_in_threadpool(
+            cloudinary.uploader.destroy,
+            avatar_public_id(current_user.id),
+            invalidate=True,
+            resource_type="image"
+        )
+    except cloudinary.exceptions.Error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Не вдалося видалити фото. Спробуй ще раз"
+        )
+
+    updated_user = await crud_user.update_avatar(
+        db, db_user=current_user, avatar_url=None
+    )
+    return {"avatar_url": updated_user.avatar_url}
 
 
 @router.patch("/me/password")

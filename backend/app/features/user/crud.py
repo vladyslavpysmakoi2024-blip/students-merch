@@ -65,6 +65,15 @@ async def update_user(db: AsyncSession, db_user: User, user_in: UserUpdate) -> U
     return db_user
 
 
+async def update_avatar(db: AsyncSession, db_user: User, avatar_url: str | None) -> User:
+    db_user.avatar_url = avatar_url
+
+    db.add(db_user)
+    await db.commit()
+    await db.refresh(db_user)
+    return db_user
+
+
 async def update_password(db: AsyncSession, db_user: User, new_password: str) -> User:
     db_user.password = hash_password(new_password)
 

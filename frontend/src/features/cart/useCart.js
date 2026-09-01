@@ -1,5 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCart, updateCartItemQuantity, removeCartItem } from "./api";
+import {
+  getCart,
+  updateCartItemQuantity,
+  removeCartItem,
+  applyPromoCode,
+} from "./api";
 
 // Той самий ключ, що й profileKeys.cart у features/profile/useProfile.js,
 // щоб додавання товару в кошик з інших сторінок теж оновлювало цю сторінку
@@ -35,5 +40,11 @@ export const useRemoveCartItem = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
     },
+  });
+};
+
+export const useApplyPromoCode = () => {
+  return useMutation({
+    mutationFn: applyPromoCode,
   });
 };

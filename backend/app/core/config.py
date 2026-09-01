@@ -17,8 +17,12 @@ ACCESS_TOKEN_EXPIRE_IN_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "6
 REFRESH_TOKEN_EXPIRE_IN_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_IN_DAYS", "7"))
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
 
 if not all([DB_USER, DB_PASSWORD, DB_NAME, DB_HOST]):
     raise ValueError("Не знайдено всі необхідні змінні середовища для бази даних!")
+
+if not CLOUDINARY_URL:
+    raise ValueError("Не знайдено CLOUDINARY_URL у змінних середовища!")
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?ssl=require"
