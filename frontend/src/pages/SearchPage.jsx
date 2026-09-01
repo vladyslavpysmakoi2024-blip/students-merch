@@ -113,9 +113,9 @@ function SearchPage() {
         });
         if (query) navigate("/search", { replace: true });
       } else if (query) {
-        response = await api.get("/search", { params: { title: query } });
+        response = await api.get("/clothing/search", { params: { title: query } });
       } else {
-        response = await api.get("/simple-list");
+        response = await api.get("/clothing/simple-list");
       }
 
       setResults(Array.isArray(response.data) ? response.data : []);

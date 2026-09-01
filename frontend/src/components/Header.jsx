@@ -27,7 +27,7 @@ function Header() {
     const delayDebounceFn = setTimeout(async () => {
       if (searchQuery.trim().length > 0) {
         try {
-          const response = await api.get("/search", {
+          const response = await api.get("/clothing/search", {
             params: { title: searchQuery },
           });
           const data = response.data;
