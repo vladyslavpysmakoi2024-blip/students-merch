@@ -363,7 +363,7 @@ function ProfilePage() {
                           : "—")}
                     </div>
                     <div className="profile-order-total">
-                      {formatPrice(order.cost)}
+                      {formatPrice(order.price)}
                     </div>
                   </div>
                 ))

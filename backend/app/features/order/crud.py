@@ -38,7 +38,7 @@ async def get_orders_catalog(db: AsyncSession, user_id: int) -> list[dict]:
     return [
         {
             "id": row.id,
-            "cost": str(row.price),  # <--- Повертаємо фронтенду як cost
+            "price": str(row.price),
             "delivery_company": row.delivery_company,
             "date": row.date,
             "items_count": row.items_count
