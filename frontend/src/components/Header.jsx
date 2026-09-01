@@ -120,7 +120,11 @@ function Header() {
         <div className="title">#ТВОЯ_ПОЛІТЕХНІКА</div>
 
         <div className="header-icons">
-          <button ref={searchBtnRef} onClick={toggleSearch}>
+          <button
+            ref={searchBtnRef}
+            onClick={toggleSearch}
+            className={!isLoggedIn ? "search-btn-closer" : ""}
+          >
             <svg
               width="35"
               height="35"
@@ -143,8 +147,8 @@ function Header() {
                 <FaCircleUser size="60px" color="var(--secondary-yellow)" />
               </Link>
             ) : (
-              <Link to="/login">
-                <CiLogin size="60px" color="var(--secondary-yellow)" />
+              <Link to="/login" className="login-icon-bold">
+                <CiLogin size="60px" color="var(--secondary-yellow)" strokeWidth={1} />
               </Link>
             )}
           </button>

@@ -54,7 +54,9 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: logoutApi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: authKeys.user });
+      // Одразу очищаємо кеш, щоб isLoggedIn став false до нового запиту
+      queryClient.setQueryData(authKeys.user, null);
+      queryClient.removeQueries({ queryKey: authKeys.user });
     },
   });
 };
