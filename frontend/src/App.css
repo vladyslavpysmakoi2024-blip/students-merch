@@ -2596,3 +2596,147 @@ body.product-page-body .app::before {
     width: 100%;
   }
 }
+
+/* ===== Footer ===== */
+
+.footer {
+  margin: 60px -40px 0 -40px;
+  padding: 40px;
+  width: calc(100% + 80px);
+  box-sizing: border-box;
+  background-color: #3d5690;
+  border-radius: 0;
+  color: #eaf3b2;
+  position: relative;
+  z-index: 10;
+}
+
+.footer-container {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 220px;
+}
+
+.footer-logo {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+.footer-brand-name {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #eaf3b2;
+  margin: 0;
+}
+
+.footer-columns {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 40px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.footer-column {
+  min-width: 180px;
+}
+
+.footer-column-title {
+  font-size: 16px;
+  margin: 0 0 14px 0;
+  color: #ffffff;
+}
+
+.footer-socials {
+  display: flex;
+  gap: 14px;
+  font-size: 22px;
+}
+
+.footer-socials a {
+  color: #eaf3b2;
+  display: flex;
+  align-items: center;
+}
+
+.footer-socials a:hover {
+  color: #ffffff;
+}
+
+/* Тимчасово неактивна іконка (немає ще посилання) */
+.footer-social-pending {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.footer-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-links a,
+.footer-text a {
+  color: #eaf3b2;
+  text-decoration: none;
+}
+
+.footer-links a:hover,
+.footer-text a:hover {
+  text-decoration: underline;
+}
+
+/* Пункт списку, який ще не має посилання (наприклад, Leocard Bot) */
+.footer-link-pending {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.footer-text {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 8px 0;
+  color: #eaf3b2;
+}
+
+.footer-bottom {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(234, 243, 178, 0.25);
+  text-align: center;
+  font-size: 13px;
+  color: rgba(234, 243, 178, 0.7);
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 24px;
+  }
+
+  .footer-container {
+    flex-direction: column;
+    flex-wrap: wrap;
+  }
+
+  .footer-columns {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
