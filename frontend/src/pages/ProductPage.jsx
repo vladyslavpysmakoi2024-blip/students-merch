@@ -123,8 +123,8 @@ function ProductPage() {
             <button
               className={`favorite-badge-btn${heartAnim ? " heart-pop" : ""}`}
               onClick={handleFavoriteToggle}
-              aria-label="Додати в обране"
-              title="Додати в обране"
+              aria-label={isFavorite ? "Прибрати зі збереженого" : "Додати в збережене"}
+              title={isFavorite ? "Прибрати зі збереженого" : "Додати в збережене"}
             >
               <svg
                 width="22"
