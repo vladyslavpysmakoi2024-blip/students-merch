@@ -6,14 +6,12 @@ function Footer() {
   return (
     <footer className="footer">
       <div className="footer-container">
-        {/* Логотип + назва */}
         <div className="footer-brand">
           <img src="/footer-logo.png" alt="Логотип Колегії та Профкому студентів" className="footer-logo" />
-          <p className="footer-brand-name">Колегія та профком<br />студентів і аспірантів</p>
+          <p className="footer-brand-name">Колегія та профком студентів і аспірантів</p>
         </div>
 
         <div className="footer-columns">
-          {/* Соціальні мережі */}
           <div className="footer-column">
             <h4 className="footer-column-title">Соціальні мережі</h4>
             <div className="footer-socials">
@@ -35,7 +33,6 @@ function Footer() {
             </div>
           </div>
 
-          {/* Наші сервіси */}
           <div className="footer-column">
             <h4 className="footer-column-title">Наші сервіси</h4>
             <ul className="footer-links">
@@ -45,20 +42,22 @@ function Footer() {
                 </a>
               </li>
               <li>
-                {/* TODO: посилання на Leocard Bot з'явиться пізніше */}
+                <a href="https://t.me/Students_nulp_support_bot" target="_blank" rel="noopener noreferrer">
+                  Students NULP Support Bot
+                </a>
+              </li>
+              <li>
                 <span className="footer-link-pending">Leocard Bot (скоро)</span>
               </li>
             </ul>
           </div>
 
-          {/* Адреса та графік роботи */}
           <div className="footer-column">
             <h4 className="footer-column-title">Де нас знайти</h4>
             <p className="footer-text">вул. Степана Бандери, 12, Львів<br />Кабінет 235</p>
             <p className="footer-text">Пн–Пт: 10:00–16:00</p>
           </div>
 
-          {/* Контакти */}
           <div className="footer-column">
             <h4 className="footer-column-title">Контакти</h4>
             <p className="footer-text">
@@ -68,7 +67,7 @@ function Footer() {
               <a href="mailto:students.profcom@lpnu.ua">students.profcom@lpnu.ua</a>
             </p>
             <p className="footer-text">
-              Тех підтримка (Telegram): <a href="tel:+380505983562">050 598 35 62</a>
+              Тех підтримка (Telegram): <a href="https://t.me/ajg473" target="_blank" rel="noopener noreferrer">@ajg473</a>
             </p>
           </div>
         </div>
