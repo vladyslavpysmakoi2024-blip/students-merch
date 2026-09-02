@@ -54,7 +54,7 @@ async def create_order(db: AsyncSession, user: User, payload: OrderCreateSchema)
 
     # Створюємо замовлення
     new_order = Order(
-        price=payload.cost,  # <--- Замінили cost на price
+        price=payload.price,
         delivery_company=payload.delivery_company,
         delivery_type=payload.delivery_type,
         postal_number=payload.postal_number,
