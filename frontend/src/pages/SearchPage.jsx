@@ -102,7 +102,7 @@ function SearchPage() {
     try {
       let response;
       if (isFiltering) {
-        response = await api.get("/filter", {
+        response = await api.get("/clothing/filter", {
           params: {
             clothing_type: clothingType || undefined,
             color: color || undefined,

@@ -593,26 +593,30 @@ body {
 
 .product-grid {
   display: flex;
-  gap: 10px;
-  padding: 45px 35px 45px 35px; /* Верхній відступ більший через заголовок */
-  background: rgba(253, 253, 245, 0.6); /* Напівпрозорий блакитний фон */
+  flex-wrap: wrap;
+  overflow: hidden;
+  gap: 100px 20px;
+  padding: 45px 35px;
+  background: rgba(253, 253, 245, 0.6);
   border-radius: 25px;
   width: 100%;
+  max-height: 290px;
   box-sizing: border-box;
 }
 
 .product-card {
-  flex: 1;
-  width: 100%;
+  flex-shrink: 0;
+  width: 140px;
+  height: 200px;
   max-width: 220px;
-  aspect-ratio: 180 / 253;
+  /* aspect-ratio: 180 / 253; */
   background: #fdfdf5;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: clamp(15px, 4vw, 30px);
-  max-width: 130px; /* Трохи менші, щоб влізло 7 штук */
-  aspect-ratio: 1.6 / 2.3; /* 👈 МІНЯЙ ЦІ ЧИСЛА (ширина / висота). Чим більше друге число, тим вища картка */
+  max-width: 130px;
+  /* aspect-ratio: 1.6 / 2.3; */
   background: #fdfdf5;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); /* М'якша тінь */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
   border-radius: 20px;
 }
 
