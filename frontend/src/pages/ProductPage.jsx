@@ -29,6 +29,7 @@ function ProductPage() {
   const [selectedSize, setSelectedSize] = useState(null);
   const [heartAnim, setHeartAnim] = useState(false);
   const [isFavoriteLocal, setIsFavoriteLocal] = useState(false);
+  const [gender, setGender] = useState("male");
 
   // Доступні розміри для вибору
   const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
@@ -196,6 +197,11 @@ function ProductPage() {
 
         {/* Поки тут модель як заглушку поставив. Хто робить цю сторінку поміняйте стилі і переставте це plzzz */}
       <div className="model-card">
+        <div className="gender-btns" >
+          <button onClick={() => setGender("female")} >Female</button>
+          <button onClick={() => setGender("male")} >Male</button>
+        </div>
+
         <div id="model-container" >
           <Canvas 
           camera={{ position: [0, 2, 5], fov: 45 }}>
@@ -204,7 +210,7 @@ function ProductPage() {
 
             <Suspense fallback={null}>
               <Center>
-                <Model3dCharacter clothingType={"Футболка"} />
+                <Model3dCharacter clothingType={"Футболка"} gender={gender} />
               </Center>
               <Environment preset="city" />
             </Suspense>
