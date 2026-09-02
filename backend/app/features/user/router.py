@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
 from app.api.dependencies import get_db, get_current_user
+from app.core.config import CLOUDINARY_URL
 from app.core.security import verify_password
 import app.features.user.crud as crud_user
 
@@ -22,6 +23,14 @@ MAX_AVATAR_SIZE = 5 * 1024 * 1024
 
 def avatar_public_id(user_id: int) -> str:
     return f"avatars/user_{user_id}"
+
+
+def require_cloudinary():
+    if not CLOUDINARY_URL:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Робота з фото недоступна: не налаштовано CLOUDINARY_URL"
+        )
 
 
 @router.get("/me")
@@ -71,6 +80,8 @@ async def upload_avatar(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    require_cloudinary()
+
     if file.content_type not in ALLOWED_AVATAR_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -117,6 +128,8 @@ async def delete_avatar(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    require_cloudinary()
+
     if not current_user.avatar_url:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

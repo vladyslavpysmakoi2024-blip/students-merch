@@ -22,7 +22,4 @@ CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
 if not all([DB_USER, DB_PASSWORD, DB_NAME, DB_HOST]):
     raise ValueError("Не знайдено всі необхідні змінні середовища для бази даних!")
 
-if not CLOUDINARY_URL:
-    raise ValueError("Не знайдено CLOUDINARY_URL у змінних середовища!")
-
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?ssl=require"
