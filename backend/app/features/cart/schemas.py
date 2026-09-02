@@ -9,12 +9,14 @@ class CartItemCreate(BaseModel):
 
 class CartItemResponse(BaseModel):
     id: int
+    cart_id: int | None = None
     product_id: int
     name: str
     price: Decimal = Field(max_digits=10, decimal_places=2, examples=['0.00'])
     size: str
     color: str
-
+    photo: str | None = None
+    quantity: int = 1
 
 class CartItemUpdate(BaseModel):
     quantity: int = Field(ge=1)

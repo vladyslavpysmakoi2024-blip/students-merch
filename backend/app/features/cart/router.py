@@ -24,11 +24,14 @@ async def get_user_cart(
     return [
         CartItemResponse(
             id=item.Cart.id,
+            cart_id=item.Cart.id,
             product_id=item.Clothing.id,
-            name=item.Clothing.name,
+            name=item.Clothing.name or "",
             price=item.Clothing.price,
-            size=item.Clothing.size,
-            color=item.Clothing.color,
+            size=item.Clothing.size or "",
+            color=item.Clothing.color or "",
+            photo=item.Clothing.photos[0] if (item.Clothing.photos and len(item.Clothing.photos) > 0) else None,
+            quantity=getattr(item.Cart, "quantity", 1),
         )
         for item in cart_items
     ]

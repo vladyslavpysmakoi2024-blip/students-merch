@@ -6,13 +6,13 @@ import { IoMenu } from "react-icons/io5";
 
 import SideBar from "./MainSideBar";
 import { useCurrentUser } from "../features/auth/useAuth";
-import { api } from "../shared/api/instance"; // Використовуємо твій axios-інстанс
+import { useLiveSearch } from "../features/clothing/useClothing";
+import { useDebounce } from "../shared/hooks/useDebounce";
 
 function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
   const [renderSidebar, setRenderSidebar] = useState(false);
 
   const { isLoggedIn } = useCurrentUser();
@@ -22,31 +22,9 @@ function Header() {
   const sidebarBtnRef = useRef(null);
   const navigate = useNavigate();
 
-  // Живий пошук з бекенду (переписано на axios)
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (searchQuery.trim().length > 0) {
-        try {
-          const response = await api.get("/search", {
-            params: { title: searchQuery },
-          });
-          const data = response.data;
-
-          if (Array.isArray(data)) {
-            setSearchResults(data.slice(0, 3)); // Показуємо макс 3
-          } else {
-            setSearchResults([]);
-          }
-        } catch (err) {
-          console.error("Error fetching search results:", err);
-        }
-      } else {
-        setSearchResults([]);
-      }
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
+  // Живий пошук з дебаунсом 300мс та кешуванням
+  const debouncedQuery = useDebounce(searchQuery, 300);
+  const { searchResults } = useLiveSearch(debouncedQuery);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -73,7 +51,6 @@ function Header() {
   useEffect(() => {
     if (!isSearchOpen) {
       setSearchQuery("");
-      setSearchResults([]);
     }
   }, [isSearchOpen]);
 
