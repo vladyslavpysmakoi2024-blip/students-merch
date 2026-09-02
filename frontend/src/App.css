@@ -641,6 +641,11 @@ body.product-page-body .app::before {
   z-index: -1;
 }
 
+body.favorites-page-body .app::before {
+  background:
+    url("./../public/bg.png") center / cover no-repeat;
+}
+
 .product-page {
   margin-top: 40px;
   padding-bottom: 80px;
@@ -1601,6 +1606,172 @@ body.product-page-body .app::before {
 }
 
 /* --- СТОРІНКА ВПОДОБАНЬ --- */
+.favorites-page {
+  width: 100%;
+  padding: 40px 0 60px;
+}
+
+.favorites-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 32px 36px 28px;
+  margin-bottom: 28px;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(253, 253, 245, 0.95) 0%,
+    rgba(234, 243, 178, 0.55) 55%,
+    rgba(138, 177, 199, 0.28) 100%
+  );
+  border-radius: 34px;
+  box-shadow: 0 10px 28px rgba(61, 86, 144, 0.12);
+}
+
+.favorites-hero::before,
+.favorites-hero::after {
+  content: "♥";
+  position: absolute;
+  color: rgba(61, 86, 144, 0.12);
+  pointer-events: none;
+  font-size: 72px;
+  line-height: 1;
+}
+
+.favorites-hero::before {
+  top: -8px;
+  left: 28px;
+  transform: rotate(-18deg);
+}
+
+.favorites-hero::after {
+  right: 140px;
+  bottom: -18px;
+  font-size: 96px;
+  transform: rotate(12deg);
+}
+
+.favorites-hero-cat {
+  position: absolute;
+  top: 15px;
+  right: 28px;
+  width: 110px;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 12px rgba(61, 86, 144, 0.18));
+}
+
+.favorites-hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+}
+
+.favorites-badge {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 6px 14px;
+  background: #3d5690;
+  color: #eaf3b2;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.favorites-title {
+  margin: 0 0 8px;
+  color: #3d5690;
+  font-size: clamp(26px, 4vw, 36px);
+  line-height: 1.15;
+}
+
+.favorites-subtitle {
+  margin: 0;
+  max-width: 480px;
+  color: #5b6c95;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.favorites-count-chip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 16px 22px;
+  background: rgba(253, 253, 245, 0.85);
+  border-radius: 22px;
+  color: #3d5690;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 6px 16px rgba(61, 86, 144, 0.1);
+}
+
+.favorites-count-chip span {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7a88ab;
+}
+
+.favorites-panel {
+  padding: 24px;
+  background: rgba(253, 253, 245, 0.72);
+  border-radius: 30px;
+  box-shadow: 0 8px 24px rgba(61, 86, 144, 0.08);
+}
+
+.favorites-status {
+  margin: 12px;
+  color: #3d5690;
+}
+
+.favorites-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 24px;
+  text-align: center;
+  color: #3d5690;
+}
+
+.favorites-empty-heart {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #eaf3b2;
+  color: #3d5690;
+  font-size: 34px;
+}
+
+.favorites-empty h3 {
+  margin: 8px 0 0;
+  font-size: 22px;
+}
+
+.favorites-empty p {
+  margin: 0 0 8px;
+  max-width: 360px;
+  color: #5b6c95;
+}
+
+.favorites-empty-cta {
+  display: inline-block;
+  text-decoration: none;
+  margin-top: 8px;
+}
+
 .favorites-header {
   margin-bottom: 30px;
   position: relative;
@@ -1684,11 +1855,36 @@ body.product-page-body .app::before {
   width: 120px;
   height: 120px;
   background-color: #e2e2d5;
+  background-size: cover;
+  background-position: center;
   border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.fav-heart-chip {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(253, 253, 245, 0.92);
+  color: #f23535;
+  font-size: 13px;
+}
+
+.fav-item-meta {
+  margin: 0 0 8px;
+  color: #7a88ab;
+  font-size: 14px;
 }
 
 .fav-photo-icon {
@@ -1720,6 +1916,7 @@ body.product-page-body .app::before {
 
 .fav-badge {
   background-color: #eaf3b2;
+  width: fit-content;
   color: #3d5690;
   font-size: 12px;
   font-weight: 700;
@@ -2313,6 +2510,42 @@ body.product-page-body .app::before {
   .profile-order-card {
     grid-template-columns: 1fr;
     justify-items: start;
+  }
+
+  .favorites-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px 22px 22px;
+  }
+
+  .favorites-hero-cat {
+    width: 84px;
+    top: -24px;
+    right: 12px;
+  }
+
+  .favorites-count-chip {
+    align-items: flex-start;
+  }
+
+  .favorite-item-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fav-item-link {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fav-details {
+    padding: 16px 0 0;
+  }
+
+  .fav-actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 12px;
   }
 }
 

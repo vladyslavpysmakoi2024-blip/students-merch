@@ -12,6 +12,7 @@ import {
   useFavorites,
   useOrders,
 } from "../features/profile/useProfile";
+import { clothingPhotoSrc } from "../shared/lib/clothingPhoto";
 
 const formatPrice = (price) => {
   if (price == null || price === "") return "—";
@@ -23,12 +24,6 @@ const formatOrderDate = (date) => {
   const parsed = new Date(date);
   if (Number.isNaN(parsed.getTime())) return "—";
   return parsed.toLocaleDateString("uk-UA");
-};
-
-const clothingPhotoSrc = (photo) => {
-  if (!photo) return null;
-  if (typeof photo === "string" && photo.startsWith("data:")) return photo;
-  return `data:image/jpeg;base64,${photo}`;
 };
 
 const clothingDetails = (clothing) => {
@@ -287,7 +282,7 @@ function ProfilePage() {
               ) : (
                 favorites.map((item) => {
                   const clothing = item.clothing;
-                  const photoSrc = clothingPhotoSrc(clothing?.photo);
+                  const photoSrc = clothingPhotoSrc(clothing);
                   return (
                     <div key={item.id} className="profile-item-card">
                       <div
