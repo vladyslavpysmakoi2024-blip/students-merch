@@ -9,7 +9,7 @@ function Footer() {
         {/* Логотип + назва */}
         <div className="footer-brand">
           <img src="/footer-logo.png" alt="Логотип Колегії та Профкому студентів" className="footer-logo" />
-          <p className="footer-brand-name">Колегія та Профком студентів адміністрації Політехніки</p>
+          <p className="footer-brand-name">Колегія та профком<br />студентів і аспірантів</p>
         </div>
 
         <div className="footer-columns">
