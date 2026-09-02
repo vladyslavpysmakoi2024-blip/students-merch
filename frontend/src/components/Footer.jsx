@@ -3,12 +3,15 @@ import { FaTelegram, FaInstagram, FaTiktok, FaThreads, FaFacebook } from "react-
 function Footer() {
   const currentYear = new Date().getFullYear();
 
-  return (
+return (
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-brand">
           <img src="/footer-logo.png" alt="Логотип Колегії та Профкому студентів" className="footer-logo" />
-          <p className="footer-brand-name">Колегія та профком студентів і аспірантів</p>
+          <h3 className="footer-brand-name">
+            Колегія та профком<br />
+            студентів і аспірантів
+          </h3>
         </div>
 
         <div className="footer-columns">
