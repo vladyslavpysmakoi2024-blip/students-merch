@@ -274,16 +274,16 @@ function ProfilePage() {
         </section>
 
         <section className="profile-grid">
-          <div className="profile-section-card">
+          <div className="profile-section-card" onClick={() => navigate("/favorites")}>
             <div className="profile-section-title-wrapper">
-              <h2 className="profile-section-title">ВІШ ЛИСТ</h2>
+              <h2 className="profile-section-title">ЗБЕРЕЖЕНЕ</h2>
             </div>
 
             <div className="profile-items-list">
               {favoritesLoading ? (
                 <p className="profile-empty">Завантаження...</p>
               ) : favorites.length === 0 ? (
-                <p className="profile-empty">У віш-листі поки немає товарів</p>
+                <p className="profile-empty">У збереженому поки немає товарів</p>
               ) : (
                 favorites.map((item) => {
                   const clothing = item.clothing;
@@ -314,7 +314,10 @@ function ProfilePage() {
                         </div>
                         <button
                           className="profile-small-btn"
-                          onClick={() => handleAddFavoriteToCart(item)}
+                          onClick={(e) => {
+                            handleAddFavoriteToCart(item)
+                            e.stopPropagation();
+                          } }
                         >
                           У КОШИК
                         </button>
@@ -323,16 +326,6 @@ function ProfilePage() {
                   );
                 })
               )}
-            </div>
-          </div>
-
-          <div className="profile-section-card">
-            <div className="profile-section-title-wrapper">
-              <h2 className="profile-section-title">ЗБЕРЕЖЕНЕ</h2>
-            </div>
-
-            <div className="profile-items-list">
-              <p className="profile-empty">Поки що порожньо</p>
             </div>
           </div>
 

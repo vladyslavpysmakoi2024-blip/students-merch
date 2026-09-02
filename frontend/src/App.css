@@ -2040,14 +2040,6 @@ body.product-page-body .app::before {
   font-size: 14px;
 }
 
-.profile-item-image--saved {
-  background: linear-gradient(
-    180deg,
-    rgba(234, 243, 178, 0.95) 0%,
-    rgba(138, 177, 199, 0.8) 100%
-  );
-}
-
 .profile-item-content {
   display: flex;
   flex-direction: column;

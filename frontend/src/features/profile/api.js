@@ -23,7 +23,7 @@ export const getOrders = async () => {
 export const addToCart = async ({ clothingId }) => {
   const res = await api.post("/cart", {
     id_clothing: clothingId,
-    quantity: 1
+    quantity: 1,
   });
   return res.data;
 };
