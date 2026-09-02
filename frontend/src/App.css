@@ -364,10 +364,10 @@ body {
 }
 
 .hero {
-  width: 106%;
+  width: 100%;
   aspect-ratio: 1450 / 257; /* Зберігаємо правильні пропорції */
-  margin-top: 38px;
-  margin-left: -53px; /* Притискаємо ліворуч */
+  /* margin-top: 38px; */
+  /* margin-left: -53px; Притискаємо ліворуч */
   background-image: url("./../public/bg-yellow.png");
   background-size: contain;
   background-repeat: no-repeat;
@@ -504,17 +504,17 @@ body {
   padding: 45px;
   display: flex;
   flex-direction: column;
-  margin-top: 25px;
-  margin-right: -50px;
+  /* margin-top: 25px; */
   gap: 35px;
   box-sizing: border-box;
 }
 
 .layout {
-  margin-top: 10px;
+  margin-top: 30px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  object-fit: cover;
 }
 
 .main-content {
@@ -561,15 +561,43 @@ body {
   margin-bottom: 0;
 }
 
+.product-container{
+  position: relative;
+
+  margin-top: 50px;
+}
+
+.product-ctg {
+  position: absolute;
+  left: 35px;
+  top: 0;
+  transform: translateY(-50%);
+
+  width: 230px;
+  text-align: center;
+  margin-top: 0;
+  padding: 5px 20px; /* 👈 МІНЯЙ ЦІ ЧИСЛА, якщо хочеш зробити плашку вужчою/ширшою */
+  display: inline-block;
+  border-radius: 15px;
+  background-color: #3d5690;
+  color: #eaf3b2;
+  font-size: clamp(20px, 4vw, 30px);
+  margin-bottom: 20px;
+  border-radius: 23px;
+  background-color: #3d5690;
+  color: #eaf3b2;
+  font-size: 33px; /* 👈 МІНЯЙ ЦЕ ЧИСЛО для розміру тексту */
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
 .product-grid {
   display: flex;
-  justify-content: space-between;
   gap: 10px;
   padding: 45px 35px 45px 35px; /* Верхній відступ більший через заголовок */
   background: rgba(253, 253, 245, 0.6); /* Напівпрозорий блакитний фон */
   border-radius: 25px;
-  width: 105%;
-  margin-left: -43px;
+  width: 100%;
   box-sizing: border-box;
 }
 
