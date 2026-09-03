@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
+
 class UserCreate(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
@@ -13,9 +14,11 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+
 class UserPasswordUpdate(BaseModel):
     current_password: str
     new_password: str
+
 
 class UserUpdate(BaseModel):
     first_name: str | None = None

@@ -1,9 +1,9 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import hash_password
 from app.features.user.models import User
 from app.features.user.schemas import UserCreate, UserUpdate
-from app.core.security import hash_password
 
 
 async def get_user(db: AsyncSession, user_id: int) -> User | None:
@@ -28,7 +28,7 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
         password=hashed_password,  # <--- ВИПРАВЛЕНО ТУТ
         first_name=user_in.first_name,
         last_name=user_in.last_name,
-        phone_number=user_in.phone_number
+        phone_number=user_in.phone_number,
     )
 
     # 3. Зберігаємо в БД
@@ -38,17 +38,17 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
     return new_user
 
 
-async def create_user_google(db: AsyncSession, email: str, first_name: str, last_name: str) -> User:
+async def create_user_google(
+    db: AsyncSession, email: str, first_name: str, last_name: str
+) -> User:
     new_user = User(
-        email=email,
-        first_name=first_name,
-        last_name=last_name,
-        password=None
+        email=email, first_name=first_name, last_name=last_name, password=None
     )
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
     return new_user
+
 
 async def update_user(db: AsyncSession, db_user: User, user_in: UserUpdate) -> User:
     # Отримуємо лише ті поля, які були передані в запиті (exclude_unset=True)
