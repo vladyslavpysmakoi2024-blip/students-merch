@@ -13,7 +13,7 @@ extend-immutable-calls = [
 extend-exclude = ["migrations"]
 
 [tool.pylint.main]
-ignore-paths = ["backend/migrations/.*"]
+ignore-paths = ["migrations/.*"]
 
 [tool.pylint.messages_control]
 disable = [

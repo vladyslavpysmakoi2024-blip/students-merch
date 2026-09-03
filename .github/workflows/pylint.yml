@@ -21,5 +21,6 @@ jobs:
           pip install pylint
 
       - name: Analysing the code with pylint
+        working-directory: ./backend
         run: |
           pylint backend/
