@@ -45,12 +45,12 @@ async def update_current_user(
             db=db, db_user=current_user, user_in=payload
         )
         return {"message": "User updated successfully", "user": updated_user}
-    except SQLAlchemyError:
+    except SQLAlchemyError as exc:
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error while updating user",
-        )
+        ) from exc
 
 
 @router.patch("/me/password")
@@ -69,6 +69,6 @@ async def change_password(
             db, db_user=current_user, new_password=payload.new_password
         )
         return {"message": "Пароль успішно змінено"}
-    except SQLAlchemyError:
+    except SQLAlchemyError as exc:
         await db.rollback()
-        raise HTTPException(status_code=500, detail="Помилка сервера")
+        raise HTTPException(status_code=500, detail="Помилка сервера") from exc

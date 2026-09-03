@@ -86,11 +86,11 @@ async def refresh_access_token(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
             )
         user_id = int(user_id_str)
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token",
-        )
+        ) from exc
 
     # 2. Перевіряємо, чи користувач досі існує в базі даних (використовуємо CRUD)
     user = await crud_user.get_user(db, user_id=user_id)
@@ -137,11 +137,11 @@ async def login_google(request: Request):
 async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         token = await oauth.google.authorize_access_token(request)
-    except OAuthError as e:
+    except OAuthError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Помилка авторизації Google: {e!s}",
-        )
+            detail=f"Помилка авторизації Google: {exc!s}",
+        ) from exc
 
     user_info = token.get("userinfo")
     if not user_info:

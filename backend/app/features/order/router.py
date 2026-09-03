@@ -40,9 +40,9 @@ async def create_order(
     try:
         await crud_order.create_order(db=db, user=current_user, payload=payload)
         return {"status": "success", "message": "Замовлення створено"}
-    except SQLAlchemyError as e:
+    except SQLAlchemyError as exc:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Помилка при збереженні: {e!s}")
+        raise HTTPException(status_code=500, detail=f"Помилка при збереженні: {exc!s}") from exc
 
 
 @router.get("/{order_id}", response_model=OrderDetailSchema)

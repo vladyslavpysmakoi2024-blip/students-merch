@@ -33,5 +33,5 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     if not all([DB_USER, DB_PASSWORD, DB_NAME, DB_HOST]):
         raise ValueError("Не знайдено всі необхідні змінні середовища для бази даних!")
-    ssl_param = f"?ssl={DB_SSL}" if DB_SSL and DB_SSL != "disable" else ""
-    DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}{ssl_param}"
+    SSL_PARAM = f"?ssl={DB_SSL}" if DB_SSL and DB_SSL != "disable" else ""
+    DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}{SSL_PARAM}"
