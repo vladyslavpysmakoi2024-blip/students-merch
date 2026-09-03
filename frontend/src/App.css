@@ -2858,6 +2858,7 @@ body.favorites-page-body .app::before {
   height: 130px;
   object-fit: contain;
   object-position: top;
+  margin-left: -30px;
   margin-bottom: 12px;
 }
 
