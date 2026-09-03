@@ -17,7 +17,7 @@ class ClothingSimpleSchema(BaseModel):
     @model_validator(mode="after")
     def fill_photo(self):
         if not self.photo and self.photos:
-            return self.model_copy(update={"photo": self.photos[0]})
+            return self.model_copy(update={"photo": self.photos[0]}) # pylint: disable=unsubscriptable-object
         return self
 
 
@@ -40,7 +40,7 @@ class ClothingDetailSchema(BaseModel):
     @model_validator(mode="after")
     def fill_photo(self):
         if not self.photo and self.photos:
-            return self.model_copy(update={"photo": self.photos[0]})
+            return self.model_copy(update={"photo": self.photos[0]}) # pylint: disable=unsubscriptable-object
         return self
 
 

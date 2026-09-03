@@ -9,6 +9,7 @@ engine = create_async_engine(
     echo=True,
 )
 
+# pylint: disable=invalid-name
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,

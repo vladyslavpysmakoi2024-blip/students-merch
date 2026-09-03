@@ -11,6 +11,7 @@ extend-immutable-calls = [
 
 [tool.ruff]
 extend-exclude = ["migrations"]
+line-length = 120
 
 [tool.pylint.main]
 ignore-paths = ["migrations/.*"]
@@ -30,3 +31,6 @@ disable = [
 
 [tool.pylint.typecheck]
 ignored-classes = ["alembic.op", "alembic.context", "sqlalchemy.func"]
+
+[tool.pylint.format]
+max-line-length = 120

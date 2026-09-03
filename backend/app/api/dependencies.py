@@ -38,8 +38,8 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
             raise credentials_exception
 
         user_id_int = int(user_id)
-    except jwt.PyJWTError:
-        raise credentials_exception
+    except jwt.PyJWTError as exc:
+        raise credentials_exception from exc
 
     # Ідеально винести цей запит у crud_user.py, наприклад:
     # user = await crud_user.get_user(db, user_id=user_id_int)
