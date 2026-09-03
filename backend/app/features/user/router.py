@@ -41,9 +41,7 @@ async def update_current_user(
 
     # 2. Викликаємо ізольовану логіку бази даних
     try:
-        updated_user = await crud_user.update_user(
-            db=db, db_user=current_user, user_in=payload
-        )
+        updated_user = await crud_user.update_user(db=db, db_user=current_user, user_in=payload)
         return {"message": "User updated successfully", "user": updated_user}
     except SQLAlchemyError as exc:
         await db.rollback()
@@ -60,14 +58,10 @@ async def change_password(
     db: AsyncSession = Depends(get_db),
 ):
     if not verify_password(payload.current_password, current_user.password):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Поточний пароль невірний"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Поточний пароль невірний")
 
     try:
-        await crud_user.update_password(
-            db, db_user=current_user, new_password=payload.new_password
-        )
+        await crud_user.update_password(db, db_user=current_user, new_password=payload.new_password)
         return {"message": "Пароль успішно змінено"}
     except SQLAlchemyError as exc:
         await db.rollback()

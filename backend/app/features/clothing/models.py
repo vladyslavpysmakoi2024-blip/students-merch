@@ -19,9 +19,7 @@ class Clothing(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     type: Mapped[str | None] = mapped_column(Text, nullable=True)
-    color: Mapped[str | None] = mapped_column(
-        VARCHAR(7), nullable=True
-    )  # Збереження HEX-кольорів
+    color: Mapped[str | None] = mapped_column(VARCHAR(7), nullable=True)  # Збереження HEX-кольорів
     size: Mapped[str | None] = mapped_column(Text, nullable=True)
     name: Mapped[str | None] = mapped_column(Text, nullable=True)
     composition: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -36,6 +34,4 @@ class Clothing(Base):
         "OrderContent", back_populates="clothing", cascade="all, delete-orphan"
     )
 
-    cart: Mapped[list[Cart]] = relationship(
-        "Cart", back_populates="clothing", cascade="all, delete-orphan"
-    )
+    cart: Mapped[list[Cart]] = relationship("Cart", back_populates="clothing", cascade="all, delete-orphan")

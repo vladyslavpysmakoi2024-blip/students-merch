@@ -15,15 +15,11 @@ if TYPE_CHECKING:
 class Favorite(Base):
     __tablename__ = "favorite"
 
-    __table_args__ = (
-        UniqueConstraint("id_user", "id_clothing", name="uq_favorite_user_clothing"),
-    )
+    __table_args__ = (UniqueConstraint("id_user", "id_clothing", name="uq_favorite_user_clothing"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
-    id_clothing: Mapped[int] = mapped_column(
-        Integer, ForeignKey("clothing.id"), nullable=False
-    )
+    id_clothing: Mapped[int] = mapped_column(Integer, ForeignKey("clothing.id"), nullable=False)
 
     id_user: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
 

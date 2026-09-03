@@ -10,9 +10,7 @@ from app.features.order_content.models import OrderContent
 from app.features.user.models import User
 
 
-async def get_order_detail(
-    db: AsyncSession, order_id: int, user_id: int
-) -> Order | None:
+async def get_order_detail(db: AsyncSession, order_id: int, user_id: int) -> Order | None:
     query = (
         select(Order)
         .options(selectinload(Order.order_content).selectinload(OrderContent.clothing))
@@ -49,9 +47,7 @@ async def get_orders_catalog(db: AsyncSession, user_id: int) -> list[dict]:
     ]
 
 
-async def create_order(
-    db: AsyncSession, user: User, payload: OrderCreateSchema
-) -> Order:
+async def create_order(db: AsyncSession, user: User, payload: OrderCreateSchema) -> Order:
     # Оновлюємо дані користувача
     user.city = payload.city
     user.street = payload.street

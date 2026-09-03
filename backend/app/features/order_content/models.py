@@ -17,14 +17,8 @@ class OrderContent(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
-    id_clothing: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("clothing.id"), nullable=True
-    )
-    id_order: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("order.id"), nullable=True
-    )
+    id_clothing: Mapped[int | None] = mapped_column(Integer, ForeignKey("clothing.id"), nullable=True)
+    id_order: Mapped[int | None] = mapped_column(Integer, ForeignKey("order.id"), nullable=True)
 
-    clothing: Mapped[Clothing] = relationship(
-        "Clothing", back_populates="order_content"
-    )
+    clothing: Mapped[Clothing] = relationship("Clothing", back_populates="order_content")
     order: Mapped[Order] = relationship("Order", back_populates="order_content")

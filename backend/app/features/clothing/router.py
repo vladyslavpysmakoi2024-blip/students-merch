@@ -50,12 +50,8 @@ async def get_other_colors_sizes(clname: str, db: AsyncSession = Depends(get_db)
 
 
 @router.get("/colored", response_model=list[ClothingColoredSchema])
-async def get_other_sizes_for_colored(
-    clname: str, clcolor: str, db: AsyncSession = Depends(get_db)
-):
-    return await crud_clothing.get_clothing_by_name_and_color(
-        db, clname=clname, clcolor=clcolor
-    )
+async def get_other_sizes_for_colored(clname: str, clcolor: str, db: AsyncSession = Depends(get_db)):
+    return await crud_clothing.get_clothing_by_name_and_color(db, clname=clname, clcolor=clcolor)
 
 
 @router.get("/clothing/{clothing_id}", response_model=ClothingDetailSchema)

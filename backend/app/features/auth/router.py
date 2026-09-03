@@ -29,9 +29,7 @@ async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db
 
 
 @router.post("/login")
-async def login(
-    payload: UserLogin, response: Response, db: AsyncSession = Depends(get_db)
-):
+async def login(payload: UserLogin, response: Response, db: AsyncSession = Depends(get_db)):
     user = await crud_user.get_user_by_email(db, email=payload.email)
     if not user or not verify_password(payload.password, user.password):
         raise HTTPException(
@@ -72,9 +70,7 @@ async def refresh_access_token(
     db: AsyncSession = Depends(get_db),
 ):
     if not refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token missing"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token missing")
 
     # 1. Декодуємо токен
     try:
@@ -82,9 +78,7 @@ async def refresh_access_token(
         user_id_str: str = payload.get("sub")
 
         if user_id_str is None or payload.get("type") != "refresh":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-            )
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         user_id = int(user_id_str)
     except jwt.PyJWTError as exc:
         raise HTTPException(
@@ -95,9 +89,7 @@ async def refresh_access_token(
     # 2. Перевіряємо, чи користувач досі існує в базі даних (використовуємо CRUD)
     user = await crud_user.get_user(db, user_id=user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists")
 
     # 3. Генеруємо новий access токен
     new_access_token = create_access_token(data={"sub": str(user.id)})
@@ -159,9 +151,7 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
 
     # 2. Якщо немає - реєструємо через CRUD
     if not user:
-        user = await crud_user.create_user_google(
-            db=db, email=email, first_name=first_name, last_name=last_name
-        )
+        user = await crud_user.create_user_google(db=db, email=email, first_name=first_name, last_name=last_name)
 
     # 3. Генеруємо токени
     access_token = create_access_token(data={"sub": str(user.id)})

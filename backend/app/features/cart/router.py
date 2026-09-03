@@ -10,9 +10,7 @@ router = APIRouter(prefix="/cart", tags=["Cart"])
 
 
 @router.get("", response_model=list[CartItemResponse])
-async def get_user_cart(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def get_user_cart(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     # 1. Звертаємося до бази через CRUD
     cart_items = await crud_cart.get_cart_items(db, user_id=current_user.id)
 
@@ -26,9 +24,7 @@ async def get_user_cart(
             price=item.Clothing.price,
             size=item.Clothing.size or "",
             color=item.Clothing.color or "",
-            photo=item.Clothing.photos[0]
-            if (item.Clothing.photos and len(item.Clothing.photos) > 0)
-            else None,
+            photo=item.Clothing.photos[0] if (item.Clothing.photos and len(item.Clothing.photos) > 0) else None,
             quantity=getattr(item.Cart, "quantity", 1),
         )
         for item in cart_items
@@ -77,9 +73,7 @@ async def remove_cart_item(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    deleted = await crud_cart.delete_cart_item(
-        db=db, user_id=current_user.id, cart_id=cart_id
-    )
+    deleted = await crud_cart.delete_cart_item(db=db, user_id=current_user.id, cart_id=cart_id)
 
     if not deleted:
         raise HTTPException(status_code=404, detail="Cart item not found")

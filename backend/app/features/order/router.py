@@ -17,9 +17,7 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 # Отримання каталогу замовлень
 @router.get("", response_model=list[OrderCatalogSchema])
-async def get_orders_catalog(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def get_orders_catalog(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     return await crud_order.get_orders_catalog(db, user_id=current_user.id)
 
 
@@ -42,9 +40,7 @@ async def create_order(
         return {"status": "success", "message": "Замовлення створено"}
     except SQLAlchemyError as exc:
         await db.rollback()
-        raise HTTPException(
-            status_code=500, detail=f"Помилка при збереженні: {exc!s}"
-        ) from exc
+        raise HTTPException(status_code=500, detail=f"Помилка при збереженні: {exc!s}") from exc
 
 
 @router.get("/{order_id}", response_model=OrderDetailSchema)
@@ -53,9 +49,7 @@ async def get_order_detail(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    order = await crud_order.get_order_detail(
-        db, order_id=order_id, user_id=current_user.id
-    )
+    order = await crud_order.get_order_detail(db, order_id=order_id, user_id=current_user.id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order

@@ -5,12 +5,8 @@ from sqlalchemy.orm import selectinload
 from app.features.favorite.models import Favorite
 
 
-async def get_favorite(
-    db: AsyncSession, user_id: int, clothing_id: int
-) -> Favorite | None:
-    query = select(Favorite).where(
-        Favorite.id_user == user_id, Favorite.id_clothing == clothing_id
-    )
+async def get_favorite(db: AsyncSession, user_id: int, clothing_id: int) -> Favorite | None:
+    query = select(Favorite).where(Favorite.id_user == user_id, Favorite.id_clothing == clothing_id)
     result = await db.execute(query)
     return result.scalars().first()
 
@@ -24,11 +20,7 @@ async def create_favorite(db: AsyncSession, user_id: int, clothing_id: int) -> F
 
 
 async def get_user_favorites(db: AsyncSession, user_id: int):
-    query = (
-        select(Favorite)
-        .options(selectinload(Favorite.clothing))
-        .where(Favorite.id_user == user_id)
-    )
+    query = select(Favorite).options(selectinload(Favorite.clothing)).where(Favorite.id_user == user_id)
     result = await db.execute(query)
     return result.scalars().all()
 

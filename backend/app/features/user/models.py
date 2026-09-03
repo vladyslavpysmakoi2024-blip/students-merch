@@ -27,14 +27,8 @@ class User(Base):
     street: Mapped[str | None] = mapped_column(Text, nullable=True)
     house_number: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    favorites: Mapped[list[Favorite]] = relationship(
-        "Favorite", back_populates="user", cascade="all, delete-orphan"
-    )
+    favorites: Mapped[list[Favorite]] = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
-    orders: Mapped[list[Order]] = relationship(
-        "Order", back_populates="user", cascade="all, delete-orphan"
-    )
+    orders: Mapped[list[Order]] = relationship("Order", back_populates="user", cascade="all, delete-orphan")
 
-    cart: Mapped[list[Cart]] = relationship(
-        "Cart", back_populates="user", cascade="all, delete-orphan"
-    )
+    cart: Mapped[list[Cart]] = relationship("Cart", back_populates="user", cascade="all, delete-orphan")
