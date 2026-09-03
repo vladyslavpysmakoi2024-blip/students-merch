@@ -10,4 +10,4 @@ extend-immutable-calls = [
 ]
 
 [tool.ruff]
-extend-exclude = ["backend/migrations"]
+extend-exclude = ["migrations"]
