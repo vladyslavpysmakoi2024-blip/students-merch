@@ -1,16 +1,16 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
-from sqlalchemy import (
-    Integer, ForeignKey
-)
+from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 
 if TYPE_CHECKING:
-    from app.features.user.models import User
     from app.features.clothing.models import Clothing
+    from app.features.user.models import User
+
 
 class Cart(Base):
     __tablename__ = "cart"

@@ -1,0 +1,20 @@
+name: Ruff
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Formatting
+        uses: astral-sh/ruff-action@v4.1.0
+        with:
+          src: "./backend"
+          args: "format --check"

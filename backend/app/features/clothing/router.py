@@ -1,45 +1,37 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import app.features.clothing.crud as crud_clothing
 from app.api.dependencies import get_db
 from app.features.clothing.schemas import (
-    ClothingSimpleSchema,
-    ClothingDetailSchema,
     ClothingAdditionalSchema,
-    ClothingColoredSchema
+    ClothingColoredSchema,
+    ClothingDetailSchema,
+    ClothingSimpleSchema,
 )
-import app.features.clothing.crud as crud_clothing
 
-router = APIRouter(
-    tags=["Clothing Catalog"]
-)
+router = APIRouter(prefix="/clothing", tags=["Clothing Catalog"])
 
 
 @router.get("/simple-list", response_model=list[ClothingSimpleSchema])
-@router.get("/clothing/simple-list", response_model=list[ClothingSimpleSchema])
 async def get_clothes_list(db: AsyncSession = Depends(get_db)):
     return await crud_clothing.get_available_clothes(db)
 
 
 @router.get("/search", response_model=list[ClothingSimpleSchema])
-@router.get("/clothing/search", response_model=list[ClothingSimpleSchema])
-async def search_clothing(
-        title: str,
-        db: AsyncSession = Depends(get_db)
-):
+async def search_clothing(title: str, db: AsyncSession = Depends(get_db)):
     return await crud_clothing.search_clothing(db, title=title)
 
 
 @router.get("/filter", response_model=list[ClothingSimpleSchema])
-@router.get("/clothing/filter", response_model=list[ClothingSimpleSchema])
 async def filter_clothing(
-        clothing_type: str | None = None,
-        color: str | None = None,
-        min_price: float | None = None,
-        max_price: float | None = None,
-        limit: int = Query(default=50, le=100),
-        offset: int = Query(default=0, ge=0),
-        db: AsyncSession = Depends(get_db)
+    clothing_type: str | None = None,
+    color: str | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    limit: int = Query(default=50, le=100),
+    offset: int = Query(default=0, ge=0),
+    db: AsyncSession = Depends(get_db),
 ):
     return await crud_clothing.filter_clothing(
         db=db,
@@ -48,23 +40,19 @@ async def filter_clothing(
         min_price=min_price,
         max_price=max_price,
         limit=limit,
-        offset=offset
+        offset=offset,
     )
 
+
 @router.get("/additional", response_model=list[ClothingAdditionalSchema])
-@router.get("/clothing/additional", response_model=list[ClothingAdditionalSchema])
 async def get_other_colors_sizes(clname: str, db: AsyncSession = Depends(get_db)):
     return await crud_clothing.get_clothing_by_name(db, clname=clname)
 
 
 @router.get("/colored", response_model=list[ClothingColoredSchema])
-@router.get("/clothing/colored", response_model=list[ClothingColoredSchema])
 async def get_other_sizes_for_colored(clname: str, clcolor: str, db: AsyncSession = Depends(get_db)):
-    return await crud_clothing.get_clothing_by_name_and_color(
-        db,
-        clname=clname,
-        clcolor=clcolor
-    )
+    return await crud_clothing.get_clothing_by_name_and_color(db, clname=clname, clcolor=clcolor)
+
 
 @router.get("/clothing/{clothing_id}", response_model=ClothingDetailSchema)
 async def get_clothing_detail(clothing_id: int, db: AsyncSession = Depends(get_db)):

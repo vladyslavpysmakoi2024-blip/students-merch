@@ -1,0 +1,36 @@
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.Security"
+]
+
+[tool.ruff]
+extend-exclude = ["migrations"]
+line-length = 120
+
+[tool.pylint.main]
+ignore-paths = ["migrations/.*"]
+
+[tool.pylint.messages_control]
+disable = [
+    "C0114", # missing-module-docstring
+    "C0115", # missing-class-docstring
+    "C0116", # missing-function-docstring
+    "R0903", # too-few-public-methods (нормально для Pydantic та SQLAlchemy)
+    "R0913", # too-many-arguments (нормально для FastAPI ендпоінтів)
+    "R0917", # too-many-positional-arguments
+    "W0621", # redefined-outer-name (Часто буває через фікстури та Depends)
+    "W0613", # unused-argument (Часто буває у FastAPI middleware/lifespan)
+    "E1102", # not-callable (sqlalchemy func.count хибне спрацьовування)
+]
+
+[tool.pylint.typecheck]
+ignored-classes = ["alembic.op", "alembic.context", "sqlalchemy.func"]
+
+[tool.pylint.format]
+max-line-length = 120

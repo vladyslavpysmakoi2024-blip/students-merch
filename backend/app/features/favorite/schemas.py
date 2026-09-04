@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict
+
 from app.features.clothing.schemas import ClothingSimpleSchema
+
 
 class FavoriteCreate(BaseModel):
     id_clothing: int
