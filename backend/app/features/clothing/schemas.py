@@ -2,20 +2,15 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.core.types import HexColor
+
 
 # Базова схема з усіма спільними полями та логікою фотографій
 class ClothingBase(BaseModel):
     id: int
     name: str | None = None
     type: str | None = None
-    color: str | None = Field(
-        default=None,
-        min_length=7,
-        max_length=7,
-        pattern=r"^#[0-9a-fA-F]{6}$",
-        description="HEX color code (e.g., #FFFFFF)",
-        examples=["#ffffff"]
-    )
+    color: HexColor | None = None
     price: Decimal = Field(max_digits=10, decimal_places=2, examples=["0.00"])
     photo: str | None = None
     photos: list[str] | None = None

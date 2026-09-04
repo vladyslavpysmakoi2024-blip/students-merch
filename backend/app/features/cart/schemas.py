@@ -3,6 +3,7 @@ from decimal import Decimal
 from pydantic import BaseModel, Field
 
 from app.core.schemas import ResponseStatus
+from app.core.types import HexColor
 
 
 class CartItemCreate(BaseModel):
@@ -17,14 +18,7 @@ class CartItemResponse(BaseModel):
     name: str
     price: Decimal = Field(max_digits=10, decimal_places=2, examples=["0.00"])
     size: str
-    color: str | None = Field(
-        default=None,
-        min_length=7,
-        max_length=7,
-        pattern=r"^#[0-9a-fA-F]{6}$",
-        description="HEX color code (e.g., #FFFFFF)",
-        examples=["#ffffff"],
-    )
+    color: HexColor | None = None
     photo: str | None = Field(
         default=None,
         description="URL-address to photo (HTTPS)",
