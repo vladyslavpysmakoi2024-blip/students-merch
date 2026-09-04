@@ -38,14 +38,6 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
     return new_user
 
 
-async def create_user_google(db: AsyncSession, email: str, first_name: str, last_name: str) -> User:
-    new_user = User(email=email, first_name=first_name, last_name=last_name, password=None)
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
-    return new_user
-
-
 async def update_user(db: AsyncSession, db_user: User, user_in: UserUpdate) -> User:
     # Отримуємо лише ті поля, які були передані в запиті (exclude_unset=True)
     # user_in може містити city, street, house_number, fathers_name тощо

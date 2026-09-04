@@ -4,29 +4,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.user.crud as crud_user
 from app.api.dependencies import get_current_user, get_db
+from app.core.schemas import MessageResponse
 from app.core.security import verify_password
 from app.features.user.models import User
-from app.features.user.schemas import UserPasswordUpdate, UserUpdate
+from app.features.user.schemas import UserAndMessageResponse, UserPasswordUpdate, UserResponse, UserUpdate
 
 router = APIRouter(prefix="/user", tags=["User"])
 
 
-@router.get("/me")
+@router.get("/me", response_model=UserResponse)
 async def get_user(current_user: User = Depends(get_current_user)):
-    return {
-        "id": current_user.id,
-        "email": current_user.email,
-        "first_name": current_user.first_name,
-        "last_name": current_user.last_name,
-        "fathers_name": current_user.fathers_name,
-        "phone_number": current_user.phone_number,
-        "city": current_user.city,
-        "street": current_user.street,
-        "house_number": current_user.house_number,
-    }
+    # Завдяки from_attributes=True у схемі UserResponse,
+    # FastAPI сам дістане всі необхідні поля (адресу, ім'я тощо) з об'єкта SQLAlchemy.
+    return current_user
 
 
-@router.patch("/me")
+@router.patch("/me", response_model=UserAndMessageResponse)
 async def update_current_user(
     payload: UserUpdate,
     db: AsyncSession = Depends(get_db),
@@ -51,18 +44,18 @@ async def update_current_user(
         ) from exc
 
 
-@router.patch("/me/password")
+@router.patch("/me/password", response_model=MessageResponse)
 async def change_password(
     payload: UserPasswordUpdate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     if not verify_password(payload.current_password, current_user.password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Поточний пароль невірний")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The current password is incorrect")
 
     try:
         await crud_user.update_password(db, db_user=current_user, new_password=payload.new_password)
-        return {"message": "Пароль успішно змінено"}
+        return {"message": "Password successfully changed"}
     except SQLAlchemyError as exc:
         await db.rollback()
-        raise HTTPException(status_code=500, detail="Помилка сервера") from exc
+        raise HTTPException(status_code=500, detail="Server error") from exc

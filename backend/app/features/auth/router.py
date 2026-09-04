@@ -4,6 +4,7 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import app.features.auth.crud as crud_auth
 import app.features.user.crud as crud_user
 from app.api.dependencies import get_db
 from app.core.config import (
@@ -12,29 +13,31 @@ from app.core.config import (
     GOOGLE_CLIENT_SECRET,
     JWT_SECRET_KEY,
 )
+from app.core.schemas import MessageResponse
 from app.core.security import create_access_token, create_refresh_token, verify_password
-from app.features.user.schemas import UserCreate, UserLogin
+from app.features.auth.schemas import UserGoogleCreate
+from app.features.user.schemas import UserAndMessageResponse, UserCreate, UserLogin
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register")
+@router.post("/register", response_model=UserAndMessageResponse)
 async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     existing_user = await crud_user.get_user_by_email(db, email=user_data.email)
     if existing_user:
-        raise HTTPException(status_code=400, detail="Користувач вже існує")
+        raise HTTPException(status_code=400, detail="User already exist")
 
     new_user = await crud_user.create_user(db, user_data)
     return {"message": "User created successfully", "user": new_user}
 
 
-@router.post("/login")
+@router.post("/login", response_model=MessageResponse)
 async def login(payload: UserLogin, response: Response, db: AsyncSession = Depends(get_db)):
     user = await crud_user.get_user_by_email(db, email=payload.email)
     if not user or not verify_password(payload.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Неправильний email або пароль",
+            detail="Incorrect email or password",
         )
 
     access_token = create_access_token(data={"sub": str(user.id)})
@@ -53,17 +56,17 @@ async def login(payload: UserLogin, response: Response, db: AsyncSession = Depen
         max_age=7 * 24 * 60 * 60,
     )
 
-    return {"message": "Успішний вхід"}
+    return {"message": "Successful login"}
 
 
-@router.post("/logout")
+@router.post("/logout", response_model=MessageResponse)
 async def logout(response: Response):
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
-    return {"message": "Успішний вихід"}
+    return {"message": "Successful logout"}
 
 
-@router.post("/refresh")
+@router.post("/refresh", response_model=MessageResponse)
 async def refresh_access_token(
     response: Response,
     refresh_token: str | None = Cookie(default=None),
@@ -132,14 +135,14 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
     except OAuthError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Помилка авторизації Google: {exc!s}",
+            detail=f"Google authorization error: {exc!s}",
         ) from exc
 
     user_info = token.get("userinfo")
     if not user_info:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Не вдалося отримати дані користувача від Google",
+            detail="Failed to retrieve user data from Google",
         )
 
     email = user_info.get("email")
@@ -151,7 +154,8 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
 
     # 2. Якщо немає - реєструємо через CRUD
     if not user:
-        user = await crud_user.create_user_google(db=db, email=email, first_name=first_name, last_name=last_name)
+        user_data = UserGoogleCreate(email=email, first_name=first_name, last_name=last_name)
+        user = await crud_auth.create_user_google(db=db, user_in=user_data)
 
     # 3. Генеруємо токени
     access_token = create_access_token(data={"sub": str(user.id)})
