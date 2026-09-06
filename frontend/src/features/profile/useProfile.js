@@ -1,11 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addToCart, getFavorites, getOrders, removeFavorite } from "./api";
-import { addFavorite } from "./api"; // додай в існуючий імпорт
+import {
+  addFavorite,
+  addToCart,
+  getFavorites,
+  getOrders,
+  removeFavorite,
+} from "./api";
 
 export const profileKeys = {
   favorites: ["favorites"],
   orders: ["orders"],
-  cart: ["cart"]
+  cart: ["cart"],
 };
 
 export const useAddFavorite = () => {
@@ -36,7 +41,6 @@ export const useRemoveFavorite = () => {
   return useMutation({
     mutationFn: removeFavorite,
     onSuccess: () => {
-      // Оновлюємо дані після успішного видалення
       queryClient.invalidateQueries({ queryKey: profileKeys.favorites });
     },
   });

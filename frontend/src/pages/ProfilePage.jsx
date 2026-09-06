@@ -15,6 +15,7 @@ import {
   useFavorites,
   useOrders,
 } from "../features/profile/useProfile";
+import { clothingPhotoSrc } from "../shared/lib/clothingPhoto";
 
 const formatPrice = (price) => {
   if (price == null || price === "") return "—";
@@ -26,12 +27,6 @@ const formatOrderDate = (date) => {
   const parsed = new Date(date);
   if (Number.isNaN(parsed.getTime())) return "—";
   return parsed.toLocaleDateString("uk-UA");
-};
-
-const clothingPhotoSrc = (photo) => {
-  if (!photo) return null;
-  if (typeof photo === "string" && photo.startsWith("data:")) return photo;
-  return `data:image/jpeg;base64,${photo}`;
 };
 
 const AVATAR_OUTPUT_SIZE = 512;
@@ -419,20 +414,20 @@ function ProfilePage() {
         </section>
 
         <section className="profile-grid">
-          <div className="profile-section-card">
+          <div className="profile-section-card" onClick={() => navigate("/favorites")}>
             <div className="profile-section-title-wrapper">
-              <h2 className="profile-section-title">ВІШ ЛИСТ</h2>
+              <h2 className="profile-section-title">ЗБЕРЕЖЕНЕ</h2>
             </div>
 
             <div className="profile-items-list">
               {favoritesLoading ? (
                 <p className="profile-empty">Завантаження...</p>
               ) : favorites.length === 0 ? (
-                <p className="profile-empty">У віш-листі поки немає товарів</p>
+                <p className="profile-empty">У збереженому поки немає товарів</p>
               ) : (
                 favorites.map((item) => {
                   const clothing = item.clothing;
-                  const photoSrc = clothingPhotoSrc(clothing?.photo);
+                  const photoSrc = clothingPhotoSrc(clothing);
                   return (
                     <div key={item.id} className="profile-item-card">
                       <div
@@ -459,7 +454,10 @@ function ProfilePage() {
                         </div>
                         <button
                           className="profile-small-btn"
-                          onClick={() => handleAddFavoriteToCart(item)}
+                          onClick={(e) => {
+                            handleAddFavoriteToCart(item)
+                            e.stopPropagation();
+                          } }
                         >
                           У КОШИК
                         </button>
@@ -468,16 +466,6 @@ function ProfilePage() {
                   );
                 })
               )}
-            </div>
-          </div>
-
-          <div className="profile-section-card">
-            <div className="profile-section-title-wrapper">
-              <h2 className="profile-section-title">ЗБЕРЕЖЕНЕ</h2>
-            </div>
-
-            <div className="profile-items-list">
-              <p className="profile-empty">Поки що порожньо</p>
             </div>
           </div>
 

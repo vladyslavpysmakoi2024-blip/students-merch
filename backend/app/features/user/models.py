@@ -1,17 +1,16 @@
-from typing import TYPE_CHECKING # ignoring this in runtime
+from __future__ import annotations
 
-from sqlalchemy import (
-    Integer, Text, String
-)
+from typing import TYPE_CHECKING  # ignoring this in runtime
+
+from sqlalchemy import Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 
-
 if TYPE_CHECKING:
+    from app.features.cart.models import Cart
     from app.features.favorite.models import Favorite
     from app.features.order.models import Order
-    from app.features.cart.models import Cart
 
 
 class User(Base):
@@ -29,20 +28,8 @@ class User(Base):
     house_number: Mapped[str | None] = mapped_column(Text, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    favorites: Mapped[list[Favorite]] = relationship(
-        "Favorite",
-        back_populates="user",
-        cascade="all, delete-orphan"
-    )
+    favorites: Mapped[list[Favorite]] = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
-    orders: Mapped[list[Order]] = relationship(
-        "Order",
-        back_populates="user",
-        cascade="all, delete-orphan"
-    )
+    orders: Mapped[list[Order]] = relationship("Order", back_populates="user", cascade="all, delete-orphan")
 
-    cart: Mapped[list[Cart]] = relationship(
-        "Cart",
-        back_populates="user",
-        cascade="all, delete-orphan"
-    )
+    cart: Mapped[list[Cart]] = relationship("Cart", back_populates="user", cascade="all, delete-orphan")

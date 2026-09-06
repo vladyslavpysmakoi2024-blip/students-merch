@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import "./App.css";
 
 import Home from "./pages/Home";
@@ -55,6 +56,8 @@ function App() {
         {/* Fallback для неіснуючих сторінок */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+
+      <Footer />
     </div>
   );
 }

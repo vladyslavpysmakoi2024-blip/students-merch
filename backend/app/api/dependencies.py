@@ -1,10 +1,10 @@
-from fastapi import Depends, Request, HTTPException, status
+import jwt
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from jose import jwt, JWTError
 
-from app.db.database import AsyncSessionLocal
 from app.core.config import JWT_SECRET_KEY
+from app.db.database import AsyncSessionLocal
 from app.features.user.models import User
 
 
@@ -15,11 +15,12 @@ async def get_db():
         finally:
             await session.close()
 
+
 # Залежність для отримання поточного користувача
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials"
+        detail="Could not validate credentials",
     )
 
     # Читаємо токен виключно з кукі
@@ -37,8 +38,8 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
             raise credentials_exception
 
         user_id_int = int(user_id)
-    except JWTError:
-        raise credentials_exception
+    except jwt.PyJWTError as exc:
+        raise credentials_exception from exc
 
     # Ідеально винести цей запит у crud_user.py, наприклад:
     # user = await crud_user.get_user(db, user_id=user_id_int)

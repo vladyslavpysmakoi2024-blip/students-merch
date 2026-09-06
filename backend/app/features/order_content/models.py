@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING # ignoring this in runtime
+from __future__ import annotations
 
-from sqlalchemy import (
-    Integer, ForeignKey
-)
+from typing import TYPE_CHECKING  # ignoring this in runtime
+
+from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -10,6 +10,7 @@ from app.db.database import Base
 if TYPE_CHECKING:
     from app.features.clothing.models import Clothing
     from app.features.order.models import Order
+
 
 class OrderContent(Base):
     __tablename__ = "order_content"
