@@ -3,7 +3,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.cart.crud as crud_cart
 from app.api.dependencies import get_current_user, get_db
-from app.features.cart.schemas import CartItemCreate, CartItemResponse, CartItemUpdate
+from app.core.schemas import ResponseStatus
+from app.features.cart.schemas import (
+    CartAddResponse,
+    CartDeleteResponse,
+    CartItemCreate,
+    CartItemResponse,
+    CartItemUpdate,
+    CartUpdateResponse,
+)
 from app.features.user.models import User
 
 router = APIRouter(prefix="/cart", tags=["Cart"])
@@ -31,7 +39,7 @@ async def get_user_cart(current_user: User = Depends(get_current_user), db: Asyn
     ]
 
 
-@router.post("")
+@router.post("", response_model=CartAddResponse)
 async def add_to_cart(
     data: CartItemCreate,
     current_user: User = Depends(get_current_user),
@@ -45,12 +53,12 @@ async def add_to_cart(
     )
 
     if not is_new:
-        return {"status": "updated", "new_quantity": item.quantity}
+        return {"status": ResponseStatus.UPDATED, "new_quantity": item.quantity}
 
-    return {"status": "success", "cart_item_id": item.id}
+    return {"status": ResponseStatus.UPDATED, "cart_item_id": item.id}
 
 
-@router.patch("/{cart_id}")
+@router.patch("/{cart_id}", response_model=CartUpdateResponse)
 async def update_cart_item(
     cart_id: int,
     data: CartItemUpdate,
@@ -64,10 +72,10 @@ async def update_cart_item(
     if not item:
         raise HTTPException(status_code=404, detail="Cart item not found")
 
-    return {"status": "updated", "new_quantity": item.quantity}
+    return {"status": ResponseStatus.UPDATED, "new_quantity": item.quantity}
 
 
-@router.delete("/{cart_id}")
+@router.delete("/{cart_id}", response_model=CartDeleteResponse)
 async def remove_cart_item(
     cart_id: int,
     current_user: User = Depends(get_current_user),
@@ -78,4 +86,4 @@ async def remove_cart_item(
     if not deleted:
         raise HTTPException(status_code=404, detail="Cart item not found")
 
-    return {"status": "deleted", "cart_id": cart_id}
+    return {"status": ResponseStatus.DELETED, "cart_id": cart_id}

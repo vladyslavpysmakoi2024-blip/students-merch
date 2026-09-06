@@ -10,12 +10,14 @@ from alembic import context
 
 from app.db.database import Base
 from app.core.config import DATABASE_URL
-from app.features.user.models import User
-from app.features.clothing.models import Clothing
-from app.features.favorite.models import Favorite
-from app.features.order.models import Order
-from app.features.order_content.models import OrderContent
-from app.features.cart.models import Cart
+
+# Імпорт необхідних моделей для Alembic
+from app.features.user.models import User # noqa
+from app.features.clothing.models import Clothing # noqa
+from app.features.favorite.models import Favorite # noqa
+from app.features.order.models import Order # noqa
+from app.features.order_content.models import OrderContent # noqa
+from app.features.cart.models import Cart # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

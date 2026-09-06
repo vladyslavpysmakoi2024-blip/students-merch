@@ -4,9 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.order.crud as crud_order
 from app.api.dependencies import get_current_user, get_db
+from app.core.schemas import ResponseStatus
 from app.features.order.schemas import (
     OrderCatalogSchema,
     OrderCreateInfoSchema,
+    OrderCreateResponse,
     OrderCreateSchema,
     OrderDetailSchema,
 )
@@ -29,7 +31,7 @@ async def get_info_for_new_order(current_user: User = Depends(get_current_user))
 
 
 # Створення замовлення (БЕЗПЕЧНО: ігноруємо payload.id_user, використовуємо current_user)
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=OrderCreateResponse)
 async def create_order(
     payload: OrderCreateSchema,
     current_user: User = Depends(get_current_user),
@@ -37,10 +39,10 @@ async def create_order(
 ):
     try:
         await crud_order.create_order(db=db, user=current_user, payload=payload)
-        return {"status": "success", "message": "Замовлення створено"}
+        return {"status": ResponseStatus.SUCCESS, "message": "Order created"}
     except SQLAlchemyError as exc:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Помилка при збереженні: {exc!s}") from exc
+        raise HTTPException(status_code=500, detail=f"Error while saving: {exc!s}") from exc
 
 
 @router.get("/{order_id}", response_model=OrderDetailSchema)
