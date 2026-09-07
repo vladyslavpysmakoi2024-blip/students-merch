@@ -33,18 +33,9 @@ def require_cloudinary():
 
 @router.get("/me", response_model=UserResponse)
 async def get_user(current_user: User = Depends(get_current_user)):
-    return {
-        "id": current_user.id,
-        "email": current_user.email,
-        "first_name": current_user.first_name,
-        "last_name": current_user.last_name,
-        "fathers_name": current_user.fathers_name,
-        "phone_number": current_user.phone_number,
-        "city": current_user.city,
-        "street": current_user.street,
-        "house_number": current_user.house_number,
-        "avatar_url": current_user.avatar_url,
-    }
+    # Завдяки from_attributes=True у схемі UserResponse,
+    # FastAPI сам дістане всі необхідні поля (адресу, ім'я тощо) з об'єкта SQLAlchemy.
+    return current_user
 
 
 @router.patch("/me", response_model=UserAndMessageResponse)
