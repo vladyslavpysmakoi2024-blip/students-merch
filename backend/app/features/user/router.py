@@ -100,10 +100,10 @@ async def upload_avatar(
             invalidate=True,
             resource_type="image",
         )
-    except cloudinary.exceptions.Error:
+    except cloudinary.exceptions.Error as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY, detail="Не вдалося завантажити фото. Спробуй ще раз"
-        )
+        ) from exc
 
     updated_user = await crud_user.update_avatar(db, db_user=current_user, avatar_url=result["secure_url"])
     return {"avatar_url": updated_user.avatar_url}
@@ -120,8 +120,10 @@ async def delete_avatar(db: AsyncSession = Depends(get_db), current_user: User =
         await run_in_threadpool(
             cloudinary.uploader.destroy, avatar_public_id(current_user.id), invalidate=True, resource_type="image"
         )
-    except cloudinary.exceptions.Error:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Не вдалося видалити фото. Спробуй ще раз")
+    except cloudinary.exceptions.Error as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail="Не вдалося видалити фото. Спробуй ще раз"
+        ) from exc
 
     updated_user = await crud_user.update_avatar(db, db_user=current_user, avatar_url=None)
     return {"avatar_url": updated_user.avatar_url}
