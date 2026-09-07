@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import app.features.promo.crud as crud_promo
 from app.api.dependencies import get_current_user, get_db
 from app.features.promo.schemas import PromoApply, PromoResponse
 from app.features.user.models import User
-import app.features.promo.crud as crud_promo
 
 router = APIRouter(prefix="/promo", tags=["Promo"])
 

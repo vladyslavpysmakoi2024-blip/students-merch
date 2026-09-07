@@ -65,7 +65,9 @@ async def update_current_user(
 
 @router.post("/me/avatar")
 async def upload_avatar(
-    file: UploadFile = File(...), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
+    file: UploadFile = File(...),  # noqa
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     require_cloudinary()
 
