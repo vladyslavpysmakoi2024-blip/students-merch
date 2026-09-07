@@ -3,6 +3,7 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import truststore
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +17,9 @@ from app.features.clothing.router import router as clothing_router
 from app.features.favorite.router import router as favorite_router
 from app.features.order.router import router as order_router
 from app.features.user.router import router as user_router
+from app.features.promo.router import router as promo_router
+
+truststore.inject_into_ssl()
 
 env_file = Path(__file__).parent / ".env"
 if not env_file.exists():
@@ -61,6 +65,7 @@ app.include_router(cart_router)
 app.include_router(favorite_router)
 app.include_router(order_router)
 app.include_router(user_router)
+app.include_router(promo_router)
 
 if __name__ == "__main__":
     if "runserver" in sys.argv:

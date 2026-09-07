@@ -14,3 +14,8 @@ export const removeCartItem = async (cartId) => {
   const res = await api.delete(`/cart/${cartId}`);
   return res.data;
 };
+
+export const applyPromoCode = async (promo) => {
+  const res = await api.post("/promo/apply", { promo });
+  return res.data;
+};

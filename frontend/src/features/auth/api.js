@@ -25,6 +25,18 @@ export const updateUser = async (data) => {
   return res.data;
 };
 
+export const updateAvatar = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await api.post("/user/me/avatar", formData);
+  return res.data;
+};
+
+export const deleteAvatar = async () => {
+  const res = await api.delete("/user/me/avatar");
+  return res.data;
+};
+
 export const updatePassword = async (data) => {
   const res = await api.patch("/user/me/password", data);
   return res.data;
