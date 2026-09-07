@@ -14,6 +14,7 @@ class UserUpdate(UserBase):
     city: str | None = None
     street: str | None = None
     house_number: str | None = None
+    avatar_url: str | None = None
 
 
 # Схема створення бере базову і додає обов'язкові пошту та пароль
