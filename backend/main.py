@@ -50,7 +50,7 @@ origins = (
     else [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        FRONTEND_URL # Додали сюди, щоб точно не пропустити
+        FRONTEND_URL,  # Додали сюди, щоб точно не пропустити
     ]
 )
 # noinspection PyTypeChecker
