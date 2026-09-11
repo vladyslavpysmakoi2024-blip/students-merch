@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../App.css";
 import { useRegister } from "../features/auth/useAuth";
+import { API_BASE_URL } from "../shared/api/instance";
 
 const Registration = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const { mutate: register } = useRegister();
+  const { mutate: register, isPending } = useRegister();
   const navigate = useNavigate();
 
   const [agreed, setAgreed] = useState(false);
@@ -23,7 +24,7 @@ const Registration = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    if (isPending) return;
     if (
       !form.firstName.trim() ||
       !form.lastName.trim() ||
@@ -195,7 +196,7 @@ const Registration = () => {
               </p>
             )}
 
-            <button type="submit" className="btn-login">
+            <button type="submit" className="btn-login" disabled={isPending}>
               Зареєструватися
             </button>
 
@@ -207,7 +208,7 @@ const Registration = () => {
               type="button"
               className="btn-google"
               onClick={() =>
-                (window.location.href = "http://localhost:8000/auth/login/google")
+                (window.location.href = `${API_BASE_URL}/auth/login/google`)
               }
             >
               <svg width="20" height="20" viewBox="0 0 48 48">

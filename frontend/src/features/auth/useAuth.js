@@ -5,6 +5,8 @@ import {
   logout as logoutApi,
   register as registerApi,
   updateUser as updateUserApi,
+  updateAvatar as updateAvatarApi,
+  deleteAvatar as deleteAvatarApi,
   updatePassword as updatePasswordApi,
 } from "./api";
 
@@ -71,6 +73,28 @@ export const useUpdateUser = () => {
     },
   });
 };
+export const useUpdateAvatar = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file) => updateAvatarApi(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.user });
+    },
+  });
+};
+
+export const useDeleteAvatar = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteAvatarApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.user });
+    },
+  });
+};
+
 export const useUpdatePassword = () => {
   const queryClient = useQueryClient();
 

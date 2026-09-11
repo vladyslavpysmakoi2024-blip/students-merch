@@ -1,27 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_db, get_current_user
-from app.features.user.models import User
 import app.features.order.crud as crud_order
+from app.api.dependencies import get_current_user, get_db
+from app.core.schemas import ResponseStatus
 from app.features.order.schemas import (
-    OrderDetailSchema, 
-    OrderCatalogSchema, 
-    OrderCreateInfoSchema, 
-    OrderCreateSchema
+    OrderCatalogSchema,
+    OrderCreateInfoSchema,
+    OrderCreateResponse,
+    OrderCreateSchema,
+    OrderDetailSchema,
 )
+from app.features.user.models import User
 
-router = APIRouter(
-    prefix="/orders",
-    tags=["Orders"]
-)
+router = APIRouter(prefix="/orders", tags=["Orders"])
+
 
 # Отримання каталогу замовлень
 @router.get("", response_model=list[OrderCatalogSchema])
-async def get_orders_catalog(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
+async def get_orders_catalog(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     return await crud_order.get_orders_catalog(db, user_id=current_user.id)
 
 
@@ -33,25 +31,25 @@ async def get_info_for_new_order(current_user: User = Depends(get_current_user))
 
 
 # Створення замовлення (БЕЗПЕЧНО: ігноруємо payload.id_user, використовуємо current_user)
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=OrderCreateResponse)
 async def create_order(
-        payload: OrderCreateSchema,
-        current_user: User = Depends(get_current_user),
-        db: AsyncSession = Depends(get_db)
+    payload: OrderCreateSchema,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     try:
         await crud_order.create_order(db=db, user=current_user, payload=payload)
-        return {"status": "success", "message": "Замовлення створено"}
-    except Exception as e:
+        return {"status": ResponseStatus.SUCCESS, "message": "Order created"}
+    except SQLAlchemyError as exc:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Помилка при збереженні: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error while saving: {exc!s}") from exc
 
 
 @router.get("/{order_id}", response_model=OrderDetailSchema)
 async def get_order_detail(
     order_id: int,
-    current_user: User = Depends(get_current_user), 
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     order = await crud_order.get_order_detail(db, order_id=order_id, user_id=current_user.id)
     if not order:

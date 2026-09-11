@@ -1611,6 +1611,67 @@ body.favorites-page-body .app::before {
   color: #3d5690;
 }
 
+.promo-code {
+  margin-bottom: 20px;
+}
+
+.promo-code-row {
+  display: flex;
+  gap: 10px;
+}
+
+.promo-code-input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(61, 86, 144, 0.25);
+  border-radius: 12px;
+  font-size: 15px;
+  color: #3d5690;
+  background: #fdfdf5;
+}
+
+.promo-code-input::placeholder {
+  color: #5b6c95;
+}
+
+.promo-code-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-promo {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background-color: #8ab1c7;
+  color: #fdfdf5;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-promo:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-promo:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.promo-code-error {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #c0392b;
+}
+
+.promo-discount {
+  color: #3d5690;
+  font-weight: 600;
+}
+
 .btn-checkout-primary {
   width: 100%;
   background-color: #3d5690;
@@ -2084,6 +2145,40 @@ body.favorites-page-body .app::before {
   border: 6px solid rgba(255, 255, 255, 0.75);
   box-shadow: 0 12px 24px rgba(61, 86, 144, 0.16);
   overflow: hidden;
+  position: relative;
+}
+
+.profile-avatar-btn {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 6px;
+  border: none;
+  background: rgba(61, 86, 144, 0.85);
+  color: var(--secondary-yellow);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transform: translateY(100%);
+  transition: transform 0.25s ease;
+}
+
+.profile-avatar-wrap:hover .profile-avatar-btn,
+.profile-avatar-btn:focus-visible {
+  transform: translateY(0);
+}
+
+.profile-avatar-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+@media (hover: none) {
+  .profile-avatar-btn {
+    transform: translateY(0);
+  }
 }
 
 .profile-avatar {
@@ -2773,6 +2868,59 @@ body.favorites-page-body .app::before {
   gap: 6px;
 }
 
+.profile-modal--avatar {
+  max-width: 460px;
+}
+
+.avatar-cropper {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(61, 86, 144, 0.12);
+}
+
+.avatar-zoom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.avatar-zoom-label {
+  font-size: 14px;
+  color: #5b6c95;
+  white-space: nowrap;
+}
+
+.avatar-zoom input[type="range"] {
+  flex: 1;
+  accent-color: #3d5690;
+  cursor: pointer;
+}
+
+.profile-modal-field input[type="file"] {
+  font-size: 14px;
+  color: #5b6c95;
+  cursor: pointer;
+}
+
+.profile-modal-field input[type="file"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-avatar-status {
+  font-size: 13px;
+  color: #5b6c95;
+}
+
+.profile-avatar-error {
+  font-size: 13px;
+  color: #c0392b;
+}
+
 .profile-modal-field label {
   color: #5b6c95;
   font-size: 14px;
@@ -2860,5 +3008,155 @@ body.favorites-page-body .app::before {
   .profile-modal-actions .profile-action-btn,
   .profile-modal-actions .profile-secondary-outline-btn {
     width: 100%;
+  }
+}
+
+/* ===== Footer ===== */
+
+.footer {
+  margin: 60px -40px 0 -40px;
+  padding: 40px;
+  width: calc(100% + 80px);
+  box-sizing: border-box;
+  background-color: #3d5690;
+  border-radius: 0;
+  color: #eaf3b2;
+  position: relative;
+  z-index: 10;
+}
+
+.footer-container {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 320px;
+  flex-shrink: 0;
+  margin-top: -25px;
+}
+
+.footer-logo {
+  width: 130px;
+  height: 130px;
+  object-fit: contain;
+  object-position: top;
+  margin-left: -30px;
+  margin-bottom: 12px;
+}
+
+.footer-brand-name {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #eaf3b2;
+  margin: 0;
+}
+
+.footer-columns {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 40px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.footer-column {
+  min-width: 180px;
+}
+
+.footer-column-title {
+  font-size: 16px;
+  margin: 0 0 14px 0;
+  color: #ffffff;
+}
+
+.footer-socials {
+  display: flex;
+  gap: 14px;
+  font-size: 22px;
+}
+
+.footer-socials a {
+  color: #eaf3b2;
+  display: flex;
+  align-items: center;
+}
+
+.footer-socials a:hover {
+  color: #ffffff;
+}
+
+/* Тимчасово неактивна іконка (немає ще посилання) */
+.footer-social-pending {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.footer-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-links a,
+.footer-text a {
+  color: #eaf3b2;
+  text-decoration: none;
+}
+
+.footer-links a:hover,
+.footer-text a:hover {
+  text-decoration: underline;
+}
+
+/* Пункт списку, який ще не має посилання (наприклад, Leocard Bot) */
+.footer-link-pending {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.footer-text {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 8px 0;
+  color: #eaf3b2;
+}
+
+.footer-bottom {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(234, 243, 178, 0.25);
+  text-align: center;
+  font-size: 13px;
+  color: rgba(234, 243, 178, 0.7);
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 24px;
+  }
+
+  .footer-container {
+    flex-direction: column;
+    flex-wrap: wrap;
+  }
+
+  .footer-columns {
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 }

@@ -1,5 +1,6 @@
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.features.clothing.models import Clothing
 
 
@@ -20,7 +21,7 @@ async def search_clothing(db: AsyncSession, title: str):
     query = select(Clothing).where(
         or_(
             Clothing.name.ilike(f"%{search_term}%"),
-            Clothing.type.ilike(f"%{search_term}%")
+            Clothing.type.ilike(f"%{search_term}%"),
         )
     )
     result = await db.execute(query)
@@ -28,13 +29,13 @@ async def search_clothing(db: AsyncSession, title: str):
 
 
 async def filter_clothing(
-        db: AsyncSession,
-        clothing_type: str | None,
-        color: str | None,
-        min_price: float | None,
-        max_price: float | None,
-        limit: int,
-        offset: int
+    db: AsyncSession,
+    clothing_type: str | None,
+    color: str | None,
+    min_price: float | None,
+    max_price: float | None,
+    limit: int,
+    offset: int,
 ):
     query = select(Clothing)
 
@@ -59,9 +60,6 @@ async def get_clothing_by_name(db: AsyncSession, clname: str):
 
 
 async def get_clothing_by_name_and_color(db: AsyncSession, clname: str, clcolor: str):
-    query = select(Clothing).where(
-        Clothing.name == clname,
-        Clothing.color == clcolor
-    )
+    query = select(Clothing).where(Clothing.name == clname, Clothing.color == clcolor)
     result = await db.execute(query)
     return result.scalars().all()

@@ -1,8 +1,10 @@
 import axios from "axios";
 
+export const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 export const api = axios.create({
   withCredentials: true,
-  baseURL: "http://localhost:8000",
+  baseURL: API_BASE_URL,
 });
 
 let isRefreshing = false;
@@ -24,23 +26,19 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (
-      error.response?.status === 401 &&
-      originalRequest &&
-      !originalRequest._retry &&
-      originalRequest.url !== "/auth/login" &&
-      originalRequest.url !== "/auth/refresh"
-    ) {
+    const isAuthRoute =
+      originalRequest?.url &&
+      (originalRequest.url.includes("/auth/login") ||
+        originalRequest.url.includes("/auth/register") ||
+        originalRequest.url.includes("/auth/refresh"));
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthRoute) {
       if (!isRefreshing) {
         isRefreshing = true;
         originalRequest._retry = true;
 
         try {
-          await axios.post(
-            "http://localhost:8000/auth/refresh",
-            {},
-            { withCredentials: true },
-          );
+          await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
           isRefreshing = false;
           onRefreshed();
           return api(originalRequest);

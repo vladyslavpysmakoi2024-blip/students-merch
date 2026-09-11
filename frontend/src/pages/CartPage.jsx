@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   useCart,
   useUpdateCartItemQuantity,
   useRemoveCartItem,
+  useApplyPromoCode,
 } from '../features/cart/useCart';
 
 function CartPage() {
   const { cart, isLoading, isError } = useCart();
   const updateQuantity = useUpdateCartItemQuantity();
   const removeItem = useRemoveCartItem();
+  const applyPromo = useApplyPromoCode();
+
+  const [promoInput, setPromoInput] = useState('');
+  const [promo, setPromo] = useState(null);
+  const [promoError, setPromoError] = useState('');
 
   const handleUpdateQuantity = (cartId, currentQuantity, delta) => {
     const newQuantity = Math.max(1, currentQuantity + delta);
@@ -20,8 +26,33 @@ function CartPage() {
     removeItem.mutate(cartId);
   };
 
+  const handleApplyPromo = () => {
+    const code = promoInput.trim();
+    if (!code) return;
+
+    setPromoError('');
+    applyPromo.mutate(code, {
+      onSuccess: (data) => setPromo(data),
+      onError: (error) => {
+        setPromo(null);
+        setPromoError(
+          error.response?.data?.detail || 'Не вдалося застосувати промокод'
+        );
+      },
+    });
+  };
+
+  const handleRemovePromo = () => {
+    setPromo(null);
+    setPromoInput('');
+    setPromoError('');
+  };
+
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const discountPercent = promo ? Number(promo.discount_percent) : 0;
+  const discount = Number(((total * discountPercent) / 100).toFixed(2));
+  const totalToPay = Number((total - discount).toFixed(2));
 
   if (isLoading) {
     return (
@@ -117,10 +148,45 @@ function CartPage() {
                 <span>Доставка</span>
                 <span className="shipping-cost">За тарифами пошти</span>
               </div>
+              {promo && (
+                <div className="summary-row">
+                  <span>Знижка ({discountPercent}%)</span>
+                  <span className="promo-discount">−{discount} ₴</span>
+                </div>
+              )}
             </div>
+
+            <div className="promo-code">
+              <div className="promo-code-row">
+                <input
+                  type="text"
+                  className="promo-code-input"
+                  placeholder="Промокод"
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value)}
+                  disabled={Boolean(promo)}
+                />
+                {promo ? (
+                  <button type="button" className="btn-promo" onClick={handleRemovePromo}>
+                    Прибрати
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn-promo"
+                    onClick={handleApplyPromo}
+                    disabled={!promoInput.trim() || applyPromo.isPending}
+                  >
+                    {applyPromo.isPending ? 'Перевірка...' : 'Застосувати'}
+                  </button>
+                )}
+              </div>
+              {promoError && <p className="promo-code-error">{promoError}</p>}
+            </div>
+
             <div className="summary-total-row">
               <span>Разом</span>
-              <span className="total-price">{total} ₴</span>
+              <span className="total-price">{totalToPay} ₴</span>
             </div>
             <button className="btn-checkout-primary" disabled={cart.length === 0}>
               Оформити замовлення

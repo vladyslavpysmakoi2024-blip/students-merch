@@ -1,9 +1,12 @@
 import "../App.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Cropper from "react-easy-crop";
 import {
   useCurrentUser,
+  useDeleteAvatar,
   useLogout,
+  useUpdateAvatar,
   useUpdatePassword,
   useUpdateUser,
 } from "../features/auth/useAuth";
@@ -26,6 +29,48 @@ const formatOrderDate = (date) => {
   return parsed.toLocaleDateString("uk-UA");
 };
 
+const AVATAR_OUTPUT_SIZE = 512;
+
+const getCroppedImageFile = (imageSrc, area) =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+
+    image.onload = () => {
+      const size = Math.min(Math.round(area.width), AVATAR_OUTPUT_SIZE);
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+
+      const context = canvas.getContext("2d");
+      context.drawImage(
+        image,
+        area.x,
+        area.y,
+        area.width,
+        area.height,
+        0,
+        0,
+        size,
+        size,
+      );
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Не вдалося обробити зображення"));
+            return;
+          }
+          resolve(new File([blob], "avatar.jpg", { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        0.92,
+      );
+    };
+
+    image.onerror = () => reject(new Error("Не вдалося прочитати зображення"));
+    image.src = imageSrc;
+  });
+
 const clothingDetails = (clothing) => {
   const parts = [clothing?.type, clothing?.color].filter(Boolean);
   return parts.length ? parts.join(" · ") : "—";
@@ -36,6 +81,10 @@ function ProfilePage() {
   const { user } = useCurrentUser();
   const { mutate: updateUser } = useUpdateUser();
   const { mutate: updatePassword } = useUpdatePassword();
+  const { mutate: updateAvatar, isPending: isAvatarUploading } =
+    useUpdateAvatar();
+  const { mutate: deleteAvatar, isPending: isAvatarDeleting } =
+    useDeleteAvatar();
   const { mutate: logout } = useLogout();
   const { favorites, isLoading: favoritesLoading } = useFavorites();
   const { orders, isLoading: ordersLoading } = useOrders();
@@ -47,6 +96,19 @@ function ProfilePage() {
     email: user?.email || "",
     phone_number: user?.phone_number || "",
   });
+  const [avatarError, setAvatarError] = useState("");
+  const [avatarSrc, setAvatarSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedArea, setCroppedArea] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const closeAvatarModal = useCallback(() => {
+    setAvatarSrc((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+  }, []);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -57,13 +119,15 @@ function ProfilePage() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   useEffect(() => {
-    const isAnyModalOpen = isEditModalOpen || isPasswordModalOpen;
+    const isAnyModalOpen =
+      isEditModalOpen || isPasswordModalOpen || Boolean(avatarSrc);
     document.body.style.overflow = isAnyModalOpen ? "hidden" : "auto";
 
     const handleEsc = (e) => {
       if (e.key === "Escape") {
         setIsEditModalOpen(false);
         setIsPasswordModalOpen(false);
+        closeAvatarModal();
       }
     };
 
@@ -73,7 +137,7 @@ function ProfilePage() {
       document.body.style.overflow = "auto";
       window.removeEventListener("keydown", handleEsc);
     };
-  }, [isEditModalOpen, isPasswordModalOpen]);
+  }, [isEditModalOpen, isPasswordModalOpen, avatarSrc, closeAvatarModal]);
 
   const openEditModal = () => {
     setEditForm({
@@ -82,6 +146,7 @@ function ProfilePage() {
       email: user.email,
       phone_number: user.phone_number,
     });
+    setAvatarError("");
     setIsPasswordModalOpen(false);
     setIsEditModalOpen(true);
   };
@@ -118,6 +183,51 @@ function ProfilePage() {
         },
       },
     );
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    setAvatarError("");
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedArea(null);
+    setAvatarSrc(URL.createObjectURL(file));
+  };
+
+  const saveAvatar = async () => {
+    if (!croppedArea) return;
+
+    setAvatarError("");
+
+    try {
+      const file = await getCroppedImageFile(avatarSrc, croppedArea);
+
+      updateAvatar(file, {
+        onSuccess: closeAvatarModal,
+        onError: (error) => {
+          setAvatarError(
+            error.response?.data?.detail || "Не вдалося завантажити фото",
+          );
+        },
+      });
+    } catch (error) {
+      setAvatarError(error.message);
+    }
+  };
+
+  const handleDeleteAvatar = () => {
+    setAvatarError("");
+    deleteAvatar(undefined, {
+      onError: (error) => {
+        setAvatarError(
+          error.response?.data?.detail || "Не вдалося видалити фото",
+        );
+      },
+    });
   };
 
   const openPasswordModal = () => {
@@ -225,7 +335,28 @@ function ProfilePage() {
 
           <div className="profile-hero-main">
             <div className="profile-avatar-wrap">
-              <img src="/cat.1.png" alt="avatar" className="profile-avatar" />
+              <img
+                src={user.avatar_url || "/cat.1.png"}
+                alt="avatar"
+                className="profile-avatar"
+              />
+
+              <button
+                type="button"
+                className="profile-avatar-btn"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isAvatarUploading || isAvatarDeleting}
+              >
+                📷 Змінити фото
+              </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileSelect}
+                hidden
+              />
             </div>
 
             <div className="profile-hero-content">
@@ -262,9 +393,23 @@ function ProfilePage() {
               ЗМІНИТИ ПАРОЛЬ
             </button>
 
+            {user.avatar_url && (
+              <button
+                className="profile-secondary-outline-btn"
+                onClick={handleDeleteAvatar}
+                disabled={isAvatarDeleting}
+              >
+                {isAvatarDeleting ? "ВИДАЛЯЄМО..." : "ВИДАЛИТИ ФОТО"}
+              </button>
+            )}
+
             <button className="profile-logout-btn" onClick={handleLogout}>
               ВИЙТИ
             </button>
+
+            {avatarError && !avatarSrc && (
+              <span className="profile-avatar-error">{avatarError}</span>
+            )}
           </div>
         </section>
 
@@ -379,6 +524,81 @@ function ProfilePage() {
         </section>
       </main>
 
+      {avatarSrc && (
+        <div className="profile-modal-overlay" onClick={closeAvatarModal}>
+          <div
+            className="profile-modal profile-modal--avatar"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button className="profile-modal-close" onClick={closeAvatarModal}>
+              ×
+            </button>
+
+            <div className="profile-modal-header">
+              <div className="profile-modal-badge">
+                <span className="profile-modal-badge-icon">📷</span>
+                Фото профілю
+              </div>
+              <h2 className="profile-modal-title">Обери, що видно 🖼️</h2>
+              <p className="profile-modal-subtitle">
+                Пересунь фото та наблизь, щоб обрати вдалий кадр
+              </p>
+            </div>
+
+            <div className="avatar-cropper">
+              <Cropper
+                image={avatarSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                minZoom={1}
+                maxZoom={4}
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={(_, areaPixels) => setCroppedArea(areaPixels)}
+              />
+            </div>
+
+            <div className="avatar-zoom">
+              <span className="avatar-zoom-label">Масштаб</span>
+              <input
+                type="range"
+                min={1}
+                max={4}
+                step={0.01}
+                value={zoom}
+                onChange={(event) => setZoom(Number(event.target.value))}
+              />
+            </div>
+
+            {avatarError && (
+              <span className="profile-avatar-error">{avatarError}</span>
+            )}
+
+            <div className="profile-modal-footer">
+              <span className="profile-modal-note">🐱 Буде квадратне фото</span>
+
+              <div className="profile-modal-actions">
+                <button
+                  className="profile-secondary-outline-btn"
+                  onClick={closeAvatarModal}
+                >
+                  ← Скасувати
+                </button>
+                <button
+                  className="profile-action-btn"
+                  onClick={saveAvatar}
+                  disabled={isAvatarUploading || !croppedArea}
+                >
+                  {isAvatarUploading ? "Завантаження..." : "Зберегти фото"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isEditModalOpen && (
         <div className="profile-modal-overlay" onClick={closeEditModal}>
           <div
@@ -444,6 +664,7 @@ function ProfilePage() {
                   placeholder="+380..."
                 />
               </div>
+
             </div>
 
             <div className="profile-modal-footer">
