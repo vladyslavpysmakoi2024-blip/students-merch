@@ -10,7 +10,10 @@ import { div } from 'three/src/nodes/math/OperatorNode.js';
 
 const fakeProducts = [
   {id: 0, type: "Футболки", name: "футболка 1", photo: null, price: 1200, texture: "/textures/tshirts/1.png"},
-  {id: 1, type: "Футболки", name: "футболка 1", photo: null, price: 1200, texture: "/textures/tshirts/2.png"}
+  {id: 1, type: "Футболки", name: "футболка 1", photo: null, price: 1200, texture: "/textures/tshirts/2.png"},
+  {id: 2, type: "Шоппери", name: "шоппер 1", photo: null, price: 2000, texture: "/textures/bags/1.png"},
+  {id: 3, type: "Шоппери", name: "шоппер 2", photo: null, price: 2000, texture: "/textures/bags/2.png"},
+  {id: 4, type: "Шоппери", name: "шоппер 3", photo: null, price: 2000, texture: "/textures/bags/3.png"},
 ]
 
 const ModelPage = () => {
@@ -73,7 +76,7 @@ const ModelPage = () => {
 
                 <div id="model-container" >
                     <Canvas
-                    camera={{ position: [0, 2, 5], fov: 45 }}>
+                    camera={{ position: [0, 2, 6], fov: 45 }}>
                       <ambientLight intensity={0.7}/>
                       <directionalLight position={[5, 5, 5]} intensity={1.2}/>
 
@@ -84,12 +87,12 @@ const ModelPage = () => {
                         <Environment preset="city" />
                       </Suspense>
 
-                      <OrbitControls 
-                    //   minDistance={6.5} 
-                    //   maxDistance={10} 
-                      makeDefault
-                      autoRotate
-                      autoRotateSpeed={1.5} />
+                      <OrbitControls
+                        makeDefault
+                        enableZoom={false}
+                        enablePan={false}
+                        autoRotate
+                        autoRotateSpeed={1.5} />
                     </Canvas>
                 </div>
 
@@ -100,7 +103,7 @@ const ModelPage = () => {
 
                 {groupedProducts && Object.entries(groupedProducts).map(([ctg, arr]) => {
                 return(
-                  <ModelGrid key={ctg} ctg={ctg} items={arr} setActiveModels={setActiveModels} />
+                  <ModelGrid key={ctg} ctg={ctg} items={arr} setActiveModels={setActiveModels} activeModels={activeModels} />
                 )
                 })}
 

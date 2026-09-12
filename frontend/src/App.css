@@ -629,6 +629,11 @@ body {
   box-sizing: border-box;
 }
 
+.model-grid {
+  max-height: none;
+  gap: 30px;
+}
+
 .product-card {
   width: 140px;
   height: 200px;
