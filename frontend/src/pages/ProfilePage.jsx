@@ -531,7 +531,11 @@ function ProfilePage() {
               <p className="profile-empty">
                 Пройди опитування і отримай приємний бонус
               </p>
-              <button type="button" className="add-payment-card-btn">
+              <button
+                type="button"
+                className="add-payment-card-btn"
+                onClick={() => navigate("/survey")}
+              >
                 ПРОЙТИ ОПИТУВАННЯ
               </button>
             </div>
