@@ -4,10 +4,6 @@ import { useCurrentUser } from "../features/auth/useAuth";
 import { api } from "../shared/api/instance";
 import { useAddFavorite, useFavorites, useRemoveFavorite } from "../features/profile/useProfile";
 
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Center, Environment } from "@react-three/drei";
-import Model3dCharacter from "../components/Model3dCharacter";
-
 // Якщо ти вже виніс запити за моєю попередньою порадою,
 // заміни імпорт api на: import { getProductById } from '../entities/Product/api/productApi';
 export const mockProduct = {
@@ -29,7 +25,6 @@ function ProductPage() {
   const [selectedSize, setSelectedSize] = useState(null);
   const [heartAnim, setHeartAnim] = useState(false);
   const [isFavoriteLocal, setIsFavoriteLocal] = useState(false);
-  const [gender, setGender] = useState("male");
 
   // Доступні розміри для вибору
   const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
@@ -195,35 +190,7 @@ function ProductPage() {
           </div>
         </div>
 
-        {/* Поки тут модель як заглушку поставив. Хто робить цю сторінку поміняйте стилі і переставте це plzzz */}
-      <div className="model-card">
-        <div className="gender-btns" >
-          <button onClick={() => setGender("female")} >Female</button>
-          <button onClick={() => setGender("male")} >Male</button>
-        </div>
-
-        <div id="model-container" >
-          <Canvas 
-          camera={{ position: [0, 2, 5], fov: 45 }}>
-            <ambientLight intensity={0.7}/>
-            <directionalLight position={[5, 5, 5]} intensity={1.2}/>
-
-            <Suspense fallback={null}>
-              <Center>
-                <Model3dCharacter clothingType={"Футболка"} gender={gender} />
-              </Center>
-              <Environment preset="city" />
-            </Suspense>
-
-            <OrbitControls 
-            minDistance={6.5} 
-            maxDistance={10} 
-            makeDefault
-            autoRotate
-            autoRotateSpeed={1.5} />
-          </Canvas>
-        </div>
-      </div>
+      
       </div>
     </main>
   );

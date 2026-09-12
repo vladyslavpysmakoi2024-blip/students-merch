@@ -591,6 +591,31 @@ body {
   margin-bottom: 0;
 }
 
+.gender-btns {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  button{
+    width: 230px;
+    text-align: center;
+    margin-top: 0;
+    padding: 5px 20px; /* 👈 МІНЯЙ ЦІ ЧИСЛА, якщо хочеш зробити плашку вужчою/ширшою */
+    display: inline-block;
+    border-radius: 15px;
+    background-color: #eaf3b2;
+    color:  #3d5690;
+    font-size: clamp(20px, 4vw, 30px);
+    margin-bottom: 20px;
+    border-radius: 23px;
+    font-size: 33px; /* 👈 МІНЯЙ ЦЕ ЧИСЛО для розміру тексту */
+    font-weight: 600;
+    margin-bottom: 0;
+
+    cursor: pointer;
+    border: none;
+  }
+}
+
 .product-grid {
   display: flex;
   flex-wrap: wrap;
@@ -748,7 +773,7 @@ body.favorites-page-body .app::before {
 }
 
 #model-container {
-  height: 500px;
+  height: 800px;
 }
 
 .favorite-badge-btn {
