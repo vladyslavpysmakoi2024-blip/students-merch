@@ -521,6 +521,21 @@ function ProfilePage() {
               </button>
             </div>
           </div>
+
+          <div className="profile-section-card">
+            <div className="profile-section-title-wrapper">
+              <h2 className="profile-section-title">Опитувальник вайбу</h2>
+            </div>
+
+            <div className="profile-cards-list">
+              <p className="profile-empty">
+                Пройди опитування і отримай приємний бонус
+              </p>
+              <button type="button" className="add-payment-card-btn">
+                ПРОЙТИ ОПИТУВАННЯ
+              </button>
+            </div>
+          </div>
         </section>
       </main>
 
