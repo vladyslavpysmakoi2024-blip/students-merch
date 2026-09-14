@@ -15,7 +15,7 @@ async def get_cart_items(db: AsyncSession, user_id: int):
 async def get_cart_item(db: AsyncSession, user_id: int, clothing_id: int) -> Cart | None:
     query = select(Cart).where(Cart.id_user == user_id, Cart.id_clothing == clothing_id)
     result = await db.execute(query)
-    return result.scalar_one_or_none()
+    return result.scalars().first()
 
 
 async def create_or_update_cart_item(db: AsyncSession, user_id: int, clothing_id: int, quantity: int):

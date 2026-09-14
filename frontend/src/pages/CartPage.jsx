@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   useCart,
   useUpdateCartItemQuantity,
   useRemoveCartItem,
   useApplyPromoCode,
-} from '../features/cart/useCart';
+} from "../features/cart/useCart";
+import { useNavigate } from "react-router-dom";
+import { api } from "../shared/api/instance"; // Додано імпорт API для запиту
 
 function CartPage() {
+  const navigate = useNavigate();
+
   const { cart, isLoading, isError } = useCart();
   const updateQuantity = useUpdateCartItemQuantity();
   const removeItem = useRemoveCartItem();
   const applyPromo = useApplyPromoCode();
 
-  const [promoInput, setPromoInput] = useState('');
+  const [promoInput, setPromoInput] = useState("");
   const [promo, setPromo] = useState(null);
-  const [promoError, setPromoError] = useState('');
+  const [promoError, setPromoError] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false); // Стан для блокування кнопки під час запиту
 
   const handleUpdateQuantity = (cartId, currentQuantity, delta) => {
     const newQuantity = Math.max(1, currentQuantity + delta);
@@ -30,13 +35,13 @@ function CartPage() {
     const code = promoInput.trim();
     if (!code) return;
 
-    setPromoError('');
+    setPromoError("");
     applyPromo.mutate(code, {
       onSuccess: (data) => setPromo(data),
       onError: (error) => {
         setPromo(null);
         setPromoError(
-          error.response?.data?.detail || 'Не вдалося застосувати промокод'
+          error.response?.data?.detail || "Не вдалося застосувати промокод",
         );
       },
     });
@@ -44,8 +49,8 @@ function CartPage() {
 
   const handleRemovePromo = () => {
     setPromo(null);
-    setPromoInput('');
-    setPromoError('');
+    setPromoInput("");
+    setPromoError("");
   };
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -54,12 +59,50 @@ function CartPage() {
   const discount = Number(((total * discountPercent) / 100).toFixed(2));
   const totalToPay = Number((total - discount).toFixed(2));
 
+  const handleCheckout = async () => {
+    try {
+      setIsProcessing(true);
+
+      const clothingIds = cart.flatMap((item) =>
+        Array(item.quantity).fill(item.product_id),
+      );
+
+      // Відправляємо лише суму, поточну дату та ID товарів (без доставки)
+      const response = await api.post("/orders", {
+        price: totalToPay,
+        id_clothing: clothingIds,
+      });
+
+      if (response.data?.payment_url) {
+        window.location.href = response.data.payment_url;
+      } else {
+        alert(
+          "Замовлення створено, але не вдалося отримати посилання на оплату.",
+        );
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error(error);
+      alert(
+        "Помилка створення замовлення: " +
+          (error.response?.data?.detail || error.message),
+      );
+      setIsProcessing(false);
+    }
+  };
   if (isLoading) {
     return (
-      <main className="cart-page" style={{ paddingTop: '50px', paddingBottom: '50px' }}>
+      <main
+        className="cart-page"
+        style={{ paddingTop: "50px", paddingBottom: "50px" }}
+      >
         <div className="container">
           <div className="favorites-header">
-            <img src="/cat-cart.png" alt="cat mascot" className="cat-cart-mascot" />
+            <img
+              src="/cat-cart.png"
+              alt="cat mascot"
+              className="cat-cart-mascot"
+            />
             <h2 className="search-title title-pill">Моя корзина</h2>
           </div>
           <p>Завантаження кошика...</p>
@@ -70,10 +113,17 @@ function CartPage() {
 
   if (isError) {
     return (
-      <main className="cart-page" style={{ paddingTop: '50px', paddingBottom: '50px' }}>
+      <main
+        className="cart-page"
+        style={{ paddingTop: "50px", paddingBottom: "50px" }}
+      >
         <div className="container">
           <div className="favorites-header">
-            <img src="/cat-cart.png" alt="cat mascot" className="cat-cart-mascot" />
+            <img
+              src="/cat-cart.png"
+              alt="cat mascot"
+              className="cat-cart-mascot"
+            />
             <h2 className="search-title title-pill">Моя корзина</h2>
           </div>
           <p>Не вдалося завантажити кошик. Спробуй оновити сторінку.</p>
@@ -83,23 +133,34 @@ function CartPage() {
   }
 
   return (
-    <main className="cart-page" style={{ paddingTop: '50px', paddingBottom: '50px' }}>
+    <main
+      className="cart-page"
+      style={{ paddingTop: "50px", paddingBottom: "50px" }}
+    >
       <div className="container">
         <div className="favorites-header">
           {/* Маскот для Корзини */}
-          <img src="/cat-cart.png" alt="cat mascot" className="cat-cart-mascot" />
+          <img
+            src="/cat-cart.png"
+            alt="cat mascot"
+            className="cat-cart-mascot"
+          />
           <h2 className="search-title title-pill">Моя корзина</h2>
         </div>
 
         <div className="cart-layout">
           <div className="cart-items">
-            {cart.map(item => (
+            {cart.map((item) => (
               <div key={item.cart_id} className="cart-item-row">
                 <div className="cart-item-image">
                   {item.photo ? (
                     <img src={item.photo} alt={item.name} />
                   ) : (
-                    <span style={{ fontSize: '24px', color: 'rgba(61,86,144,0.3)' }}>📷</span>
+                    <span
+                      style={{ fontSize: "24px", color: "rgba(61,86,144,0.3)" }}
+                    >
+                      📷
+                    </span>
                   )}
                 </div>
                 <div className="cart-item-details">
@@ -113,15 +174,40 @@ function CartPage() {
                 </div>
                 <div className="cart-item-actions">
                   <div className="quantity-control">
-                    <button onClick={() => handleUpdateQuantity(item.cart_id, item.quantity, -1)}>-</button>
+                    <button
+                      onClick={() =>
+                        handleUpdateQuantity(item.cart_id, item.quantity, -1)
+                      }
+                    >
+                      -
+                    </button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => handleUpdateQuantity(item.cart_id, item.quantity, 1)}>+</button>
+                    <button
+                      onClick={() =>
+                        handleUpdateQuantity(item.cart_id, item.quantity, 1)
+                      }
+                    >
+                      +
+                    </button>
                   </div>
                   <div className="cart-item-price">
                     {item.price * item.quantity} ₴
                   </div>
-                  <button className="btn-remove-item" onClick={() => handleRemoveItem(item.cart_id)} title="Видалити">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <button
+                    className="btn-remove-item"
+                    onClick={() => handleRemoveItem(item.cart_id)}
+                    title="Видалити"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M3 6h18"></path>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
@@ -167,7 +253,11 @@ function CartPage() {
                   disabled={Boolean(promo)}
                 />
                 {promo ? (
-                  <button type="button" className="btn-promo" onClick={handleRemovePromo}>
+                  <button
+                    type="button"
+                    className="btn-promo"
+                    onClick={handleRemovePromo}
+                  >
                     Прибрати
                   </button>
                 ) : (
@@ -177,7 +267,7 @@ function CartPage() {
                     onClick={handleApplyPromo}
                     disabled={!promoInput.trim() || applyPromo.isPending}
                   >
-                    {applyPromo.isPending ? 'Перевірка...' : 'Застосувати'}
+                    {applyPromo.isPending ? "Перевірка..." : "Застосувати"}
                   </button>
                 )}
               </div>
@@ -188,11 +278,33 @@ function CartPage() {
               <span>Разом</span>
               <span className="total-price">{totalToPay} ₴</span>
             </div>
-            <button className="btn-checkout-primary" disabled={cart.length === 0}>
-              Оформити замовлення
+
+            {/* ОНОВЛЕНА КНОПКА MONOBANK */}
+            <button
+              className="btn-mono-pay"
+              disabled={cart.length === 0 || isProcessing}
+              onClick={handleCheckout}
+            >
+              {isProcessing ? "Генерація оплати..." : "Оплатити з mono"}
             </button>
+
+            {/* Запасна кнопка, якщо захочете повернути перехід на сторінку чекауту:
+            <button
+              className="btn-checkout-primary"
+              disabled={cart.length === 0}
+              onClick={() => navigate("/checkout")}
+              style={{ marginTop: "10px" }}
+            >
+              Ввести дані доставки
+            </button> 
+            */}
+
             {/* Збережи потрібного котика під назвою cat-checkout.png у папці public */}
-            <img src="/cat-checkout.png" alt="checkout cat" className="cat-checkout-mascot" />
+            <img
+              src="/cat-checkout.png"
+              alt="checkout cat"
+              className="cat-checkout-mascot"
+            />
           </div>
         </div>
       </div>

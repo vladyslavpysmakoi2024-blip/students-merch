@@ -163,9 +163,7 @@ function Header() {
               <h4 className="search-section-title">Товари</h4>
               {searchResults.length > 0 ? (
                 searchResults.map((product) => {
-                  const photoSrc = product.photo
-                    ? `data:image/jpeg;base64,${product.photo}`
-                    : null;
+                  const photoSrc = product.photos?.[0];
                   return (
                     <div
                       className="search-product-item"
