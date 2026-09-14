@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FaPerson } from "react-icons/fa6";
 
 function MainSideBar({ closeSidebar, isOpen, onAnimationEnd }) {
   const items = [
@@ -32,6 +33,13 @@ function MainSideBar({ closeSidebar, isOpen, onAnimationEnd }) {
         </svg>
       )
     },
+    {
+      title: "3D Візуалізація",
+      link: "/model",
+      icon: (
+        <FaPerson size={30} />
+      )
+    }
   ];
 
   return (

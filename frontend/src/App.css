@@ -364,10 +364,10 @@ body {
 }
 
 .hero {
-  width: 106%;
+  width: 100%;
   aspect-ratio: 1450 / 257; /* Зберігаємо правильні пропорції */
-  margin-top: 38px;
-  margin-left: -53px; /* Притискаємо ліворуч */
+  /* margin-top: 38px; */
+  /* margin-left: -53px; Притискаємо ліворуч */
   background-image: url("./../public/bg-yellow.png");
   background-size: contain;
   background-repeat: no-repeat;
@@ -504,17 +504,17 @@ body {
   padding: 45px;
   display: flex;
   flex-direction: column;
-  margin-top: 25px;
-  margin-right: -50px;
+  /* margin-top: 25px; */
   gap: 35px;
   box-sizing: border-box;
 }
 
 .layout {
-  margin-top: 10px;
+  margin-top: 30px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  object-fit: cover;
 }
 
 .main-content {
@@ -561,31 +561,96 @@ body {
   margin-bottom: 0;
 }
 
+.product-container{
+  position: relative;
+
+  margin-top: 50px;
+}
+
+.product-ctg {
+  position: absolute;
+  left: 35px;
+  top: 0;
+  transform: translateY(-50%);
+
+  width: 230px;
+  text-align: center;
+  margin-top: 0;
+  padding: 5px 20px; /* 👈 МІНЯЙ ЦІ ЧИСЛА, якщо хочеш зробити плашку вужчою/ширшою */
+  display: inline-block;
+  border-radius: 15px;
+  background-color: #3d5690;
+  color: #eaf3b2;
+  font-size: clamp(20px, 4vw, 30px);
+  margin-bottom: 20px;
+  border-radius: 23px;
+  background-color: #3d5690;
+  color: #eaf3b2;
+  font-size: 33px; /* 👈 МІНЯЙ ЦЕ ЧИСЛО для розміру тексту */
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.gender-btns {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  button{
+    width: 230px;
+    text-align: center;
+    margin-top: 0;
+    padding: 5px 20px; /* 👈 МІНЯЙ ЦІ ЧИСЛА, якщо хочеш зробити плашку вужчою/ширшою */
+    display: inline-block;
+    border-radius: 15px;
+    background-color: #eaf3b2;
+    color:  #3d5690;
+    font-size: clamp(20px, 4vw, 30px);
+    margin-bottom: 20px;
+    border-radius: 23px;
+    font-size: 33px; /* 👈 МІНЯЙ ЦЕ ЧИСЛО для розміру тексту */
+    font-weight: 600;
+    margin-bottom: 0;
+
+    cursor: pointer;
+    border: none;
+  }
+}
+
 .product-grid {
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 45px 35px 45px 35px; /* Верхній відступ більший через заголовок */
-  background: rgba(253, 253, 245, 0.6); /* Напівпрозорий блакитний фон */
+  flex-wrap: wrap;
+  overflow: hidden;
+  gap: 100px 20px;
+  padding: 45px 35px;
+  background: rgba(253, 253, 245, 0.6);
   border-radius: 25px;
-  width: 105%;
-  margin-left: -43px;
+  width: 100%;
+  max-height: 290px;
   box-sizing: border-box;
 }
 
+.model-grid {
+  max-height: none;
+  gap: 30px;
+}
+
 .product-card {
-  flex: 1;
-  width: 100%;
-  max-width: 220px;
-  aspect-ratio: 180 / 253;
+  width: 140px;
+  height: 200px;
+  /* aspect-ratio: 180 / 253; */
+  /* aspect-ratio: 1.6 / 2.3; */
   background: #fdfdf5;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  border-radius: clamp(15px, 4vw, 30px);
-  max-width: 130px; /* Трохи менші, щоб влізло 7 штук */
-  aspect-ratio: 1.6 / 2.3; /* 👈 МІНЯЙ ЦІ ЧИСЛА (ширина / висота). Чим більше друге число, тим вища картка */
-  background: #fdfdf5;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); /* М'якша тінь */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
   border-radius: 20px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+
+  img {
+    display: block;
+  }
 }
 
 .product-card--large {
@@ -708,6 +773,15 @@ body.favorites-page-body .app::before {
   position: relative;
   z-index: 2;
   display: block;
+}
+
+.model-card {
+  width: 100%;
+  height: 100%;
+}
+
+#model-container {
+  height: 800px;
 }
 
 .favorite-badge-btn {
