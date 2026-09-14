@@ -953,8 +953,7 @@ body.favorites-page-body .app::before {
   display: flex;
   justify-content: center;
   align-items: flex-start;     /* Замість center притискаємо контейнер до верху */
-  height: calc(100vh - 100px); /* Висота екрана мінус висота хедера */
-  min-height: auto;            /* Вбиваємо старе розтягування */
+  min-height: calc(100vh - 100px); /* Висота екрана мінус висота хедера */
   padding: 40px;
   padding-top: 8vh;            /* АДАПТАЦІЯ: відступ форми буде рівно 8% від висоти екрана твого ноута */
   box-sizing: border-box;
