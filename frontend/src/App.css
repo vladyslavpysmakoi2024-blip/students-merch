@@ -3131,7 +3131,7 @@ body.favorites-page-body .app::before {
 .survey-hero {
   position: relative;
   overflow: hidden;
-  min-height: 168px;
+  min-height: 220px;
   padding: 32px 36px 28px;
   background: linear-gradient(
     135deg,
@@ -3147,7 +3147,7 @@ body.favorites-page-body .app::before {
   position: relative;
   z-index: 1;
   max-width: 640px;
-  padding-right: 150px;
+  padding-right: 220px;
 }
 
 .survey-badge {
@@ -3178,13 +3178,13 @@ body.favorites-page-body .app::before {
 
 .survey-hero-cat {
   position: absolute;
-  top: 8px;
-  right: 10px;
-  width: 120px;
+  right: 40px;
+  top: 20px;
+  width: 210px;
   height: auto;
-  max-height: calc(100% - 16px);
+  max-height: 100%;
   object-fit: contain;
-  object-position: top right;
+  object-position: bottom center;
   pointer-events: none;
   z-index: 2;
   filter: drop-shadow(0 8px 12px rgba(61, 86, 144, 0.18));
@@ -3317,11 +3317,12 @@ body.favorites-page-body .app::before {
   }
 
   .survey-hero-copy {
-    padding-right: 130px;
+    padding-right: 150px;
   }
 
   .survey-hero-cat {
-    width: 96px;
+    right: 22px;
+    width: 150px;
   }
 
   .survey-panel {

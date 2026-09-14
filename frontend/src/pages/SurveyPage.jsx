@@ -130,7 +130,7 @@ function SurveyPage() {
   return (
     <main className="survey-page container">
       <section className="survey-hero">
-        <img src="/cat-thumbs-up.png" alt="" className="survey-hero-cat" />
+        <img src="/cat-curious.png" alt="" className="survey-hero-cat" />
         <div className="survey-hero-copy">
           <div className="survey-badge">ОПИТУВАЛЬНИК ВАЙБУ</div>
           <h1 className="survey-title">Вайб-опитувальник</h1>
