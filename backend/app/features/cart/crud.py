@@ -6,16 +6,14 @@ from app.features.clothing.models import Clothing
 
 
 async def get_cart_items(db: AsyncSession, user_id: int):
-    query = select(Cart, Clothing).join(
-        Clothing, Cart.id_clothing == Clothing.id).where(Cart.id_user == user_id)
+    query = select(Cart, Clothing).join(Clothing, Cart.id_clothing == Clothing.id).where(Cart.id_user == user_id)
     result = await db.execute(query)
     # Повертає список кортежів (tuple), де кожен елемент містить (Bin, Clothing)
     return result.all()
 
 
 async def get_cart_item(db: AsyncSession, user_id: int, clothing_id: int) -> Cart | None:
-    query = select(Cart).where(Cart.id_user == user_id,
-                               Cart.id_clothing == clothing_id)
+    query = select(Cart).where(Cart.id_user == user_id, Cart.id_clothing == clothing_id)
     result = await db.execute(query)
     return result.scalars().first()
 
@@ -31,8 +29,7 @@ async def create_or_update_cart_item(db: AsyncSession, user_id: int, clothing_id
         return existing_item, False  # False означає, що запис оновлено
 
     # Якщо товару немає, створюємо новий
-    new_item = Cart(id_user=user_id, id_clothing=clothing_id,
-                    quantity=quantity)
+    new_item = Cart(id_user=user_id, id_clothing=clothing_id, quantity=quantity)
     db.add(new_item)
     await db.commit()
     await db.refresh(new_item)

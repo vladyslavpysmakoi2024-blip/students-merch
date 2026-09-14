@@ -7,11 +7,12 @@ from app.api.dependencies import get_current_user, get_db
 from app.core.schemas import ResponseStatus
 from app.features.order.monobank import create_invoice
 from app.features.order.schemas import (
+    MonobankWebhook,
     OrderCatalogSchema,
     OrderCreateInfoSchema,
     OrderCreateResponse,
     OrderCreateSchema,
-    OrderDetailSchema, MonobankWebhook
+    OrderDetailSchema,
 )
 from app.features.user.models import User
 
@@ -45,8 +46,7 @@ async def create_order(
         payment_url, invoice_id = await create_invoice(amount=float(new_order.price), order_id=new_order.id)
 
         if not payment_url:
-            raise HTTPException(
-                status_code=500, detail="Не вдалося згенерувати посилання на оплату")
+            raise HTTPException(status_code=500, detail="Не вдалося згенерувати посилання на оплату")
 
         # 3. Зберігаємо invoice_id у щойно створене замовлення (ДОДАНО AWAIT)
         await crud_order.update_order_invoice_id(db, order_id=new_order.id, invoice_id=invoice_id)
@@ -55,8 +55,7 @@ async def create_order(
 
     except SQLAlchemyError as exc:
         await db.rollback()
-        raise HTTPException(
-            status_code=500, detail=f"Error while saving: {exc!s}") from exc
+        raise HTTPException(status_code=500, detail=f"Error while saving: {exc!s}") from exc
 
 
 @router.get("/{order_id}", response_model=OrderDetailSchema)
@@ -72,10 +71,7 @@ async def get_order_detail(
 
 
 @router.post("/webhook/monobank")
-async def monobank_webhook(
-    payload: MonobankWebhook,
-    db: AsyncSession = Depends(get_db)
-):
+async def monobank_webhook(payload: MonobankWebhook, db: AsyncSession = Depends(get_db)):
     print("WEBHOOK RECEIVED:", payload, flush=True)
 
     if not payload.invoiceId:

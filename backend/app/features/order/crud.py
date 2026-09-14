@@ -60,8 +60,7 @@ async def create_order(db: AsyncSession, user: User, payload: OrderCreateSchema)
     await db.flush()
 
     for item_id in payload.id_clothing:
-        new_order_content = OrderContent(
-            id_clothing=item_id, id_order=new_order.id)
+        new_order_content = OrderContent(id_clothing=item_id, id_order=new_order.id)
         db.add(new_order_content)
 
     await db.commit()

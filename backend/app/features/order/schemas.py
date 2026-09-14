@@ -6,11 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.core.schemas import ResponseStatus
 
 
-class OrderCreateResponse(BaseModel):
-    status: ResponseStatus = ResponseStatus.SUCCESS
-    message: str
-
-
 class OrderAddressBase(BaseModel):
     city: str
     street: str
@@ -34,6 +29,7 @@ class OrderCreateInfoSchema(OrderAddressBase):
 class OrderCreateSchema(BaseModel):
     price: Decimal = Field(max_digits=10, decimal_places=2, examples=["0.00"])
     id_clothing: list[int]
+
 
 # Розширює базу для списку
 

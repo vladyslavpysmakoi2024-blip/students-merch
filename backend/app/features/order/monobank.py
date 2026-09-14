@@ -1,4 +1,5 @@
 import httpx
+
 from app.core.config import MONOBANK_TOKEN, WEBHOOK_URL
 
 MONO_API_URL = "https://api.monobank.ua/api/merchant/invoice/create"
@@ -11,7 +12,7 @@ async def create_invoice(amount: float, order_id: int) -> str | None:
         "ccy": 980,  # Код гривні
         "reference": str(order_id),
         "webHookUrl": WEBHOOK_URL,
-        "redirectUrl": "http://localhost:3000/me"  # Куди повернути клієнта після оплати
+        "redirectUrl": "http://localhost:3000/me",  # Куди повернути клієнта після оплати
     }
 
     async with httpx.AsyncClient() as client:
