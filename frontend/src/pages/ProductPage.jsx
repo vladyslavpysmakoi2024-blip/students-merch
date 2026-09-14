@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from "react";
+
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+
 import { useCurrentUser } from "../features/auth/useAuth";
+
 import {
   useClothingDetail,
   useClothingList,
 } from "../features/clothing/useClothing";
+
 import {
   useAddFavorite,
   useFavorites,
   useRemoveFavorite,
 } from "../features/profile/useProfile";
+
 import ProductCard from "../components/ProductCard";
 
 const GALLERY_PAGE_SIZE = 4;
@@ -17,7 +22,9 @@ const GALLERY_PAGE_SIZE = 4;
 function ProductPage() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
+
   const navigate = useNavigate();
+
   const { isLoggedIn } = useCurrentUser();
 
   const { product, isLoading, isError } = useClothingDetail(id);
@@ -40,6 +47,7 @@ function ProductPage() {
   const isFavoriteFromApi = favorites?.some(
     (fav) => fav.clothing?.id === product?.id,
   );
+
   const isFavorite = isFavoriteLocal || isFavoriteFromApi;
 
   const handleFavoriteToggle = () => {
@@ -48,14 +56,16 @@ function ProductPage() {
       return;
     }
 
-    // Миттєво перемикаємо локальний стан (для відображення)
+    // Миттєво перемикаємо локальний стан
     setIsFavoriteLocal((prev) => !prev);
 
     // Запускаємо анімацію
     setHeartAnim(false);
+
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setHeartAnim(true));
     });
+
     setTimeout(() => setHeartAnim(false), 400);
 
     if (isFavorite) {
@@ -73,6 +83,7 @@ function ProductPage() {
   // Стилізація фону сторінки
   useEffect(() => {
     document.body.classList.add("product-page-body");
+
     return () => {
       document.body.classList.remove("product-page-body");
     };
@@ -135,12 +146,15 @@ function ProductPage() {
 
   const photos = product.photos?.filter(Boolean) || [];
   const photoSrc = photos[selectedPhoto] || "/hoodie.png";
+
   const relatedProducts = (clothes || []).filter(
     (item) => item.id !== product.id,
   );
+
   const galleryPageCount = Math.ceil(
     relatedProducts.length / GALLERY_PAGE_SIZE,
   );
+
   const galleryProducts = relatedProducts.slice(
     galleryPage * GALLERY_PAGE_SIZE,
     galleryPage * GALLERY_PAGE_SIZE + GALLERY_PAGE_SIZE,
@@ -175,6 +189,7 @@ function ProductPage() {
                 <path d="M12 21C12 21 1 14.5 1 8.5C1 5.42 3.42 3 6.5 3C8.24 3 10.09 3.81 12 5.08C13.91 3.81 15.76 3 17.5 3C20.58 3 23 5.42 23 8.5C23 14.5 12 21 12 21Z" />
               </svg>
             </button>
+
             <img src={photoSrc} alt={product.name || "Товар"} />
           </div>
 
@@ -209,12 +224,15 @@ function ProductPage() {
               <p className="material-info">
                 СКЛАД: {product.composition || "БАВОВНА 100%"}
               </p>
+
               <p className="material-info">ТИП: {product.type}</p>
+
               <p className="material-info">КОЛІР: {product.color}</p>
             </div>
 
             <div className="purchase-controls">
               <div className="price-tag">ЦІНА: {product.price} ₴</div>
+
               <button className="buy-btn" onClick={handleBuyClick}>
                 КУПИТИ
               </button>
@@ -223,7 +241,9 @@ function ProductPage() {
                 {sizes.map((size) => (
                   <button
                     key={size}
-                    className={`size-chip ${selectedSize === size ? "active" : ""}`}
+                    className={`size-chip ${
+                      selectedSize === size ? "active" : ""
+                    }`}
                     onClick={() => setSelectedSize(size)}
                     style={{
                       background: selectedSize === size ? "#8AB1C7" : "",
@@ -250,6 +270,7 @@ function ProductPage() {
               >
                 ‹
               </button>
+
               <div className="bottom-gallery-track" key={galleryPage}>
                 {galleryProducts.map((item) => (
                   <Link
@@ -261,6 +282,7 @@ function ProductPage() {
                   </Link>
                 ))}
               </div>
+
               <button
                 className="gallery-arrow gallery-arrow--next"
                 disabled={galleryPage >= galleryPageCount - 1}

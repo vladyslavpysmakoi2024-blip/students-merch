@@ -14,13 +14,16 @@ function ProductCard({ variant, product }) {
           alt={product.name || "Товар"}
         />
       )}
+
       <div className="product-card-content">
         <h3 className="product-card-title">{product.name || "Без назви"}</h3>
+
         {(product.type || product.color) && (
           <p className="product-card-meta">
             {[product.type, product.color].filter(Boolean).join(" · ")}
           </p>
         )}
+
         <p className="product-card-price">
           {product.price != null ? `${product.price} ₴` : "Ціна уточнюється"}
         </p>

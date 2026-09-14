@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import "./App.css";
@@ -12,7 +13,10 @@ import Registration from "./components/Registration";
 import CartPage from "./pages/CartPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import ModelPage from "./pages/ModelPage";
+
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
+
 function App() {
   return (
     <div className="app">
@@ -26,6 +30,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/registration" element={<Registration />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/model" element={<ModelPage />} />
+
         {/* Захищені маршрути */}
         <Route
           path="/favorites"
@@ -35,6 +41,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/cart"
           element={

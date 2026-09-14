@@ -6,6 +6,8 @@ import {
   useApplyPromoCode,
 } from "../features/cart/useCart";
 import { useNavigate } from "react-router-dom";
+import { api } from "../shared/api/instance"; // Додано імпорт API для запиту
+
 function CartPage() {
   const navigate = useNavigate();
 
@@ -17,6 +19,7 @@ function CartPage() {
   const [promoInput, setPromoInput] = useState("");
   const [promo, setPromo] = useState(null);
   const [promoError, setPromoError] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false); // Стан для блокування кнопки під час запиту
 
   const handleUpdateQuantity = (cartId, currentQuantity, delta) => {
     const newQuantity = Math.max(1, currentQuantity + delta);
@@ -56,6 +59,37 @@ function CartPage() {
   const discount = Number(((total * discountPercent) / 100).toFixed(2));
   const totalToPay = Number((total - discount).toFixed(2));
 
+  const handleCheckout = async () => {
+    try {
+      setIsProcessing(true);
+
+      const clothingIds = cart.flatMap((item) =>
+        Array(item.quantity).fill(item.product_id),
+      );
+
+      // Відправляємо лише суму, поточну дату та ID товарів (без доставки)
+      const response = await api.post("/orders", {
+        price: totalToPay,
+        id_clothing: clothingIds,
+      });
+
+      if (response.data?.payment_url) {
+        window.location.href = response.data.payment_url;
+      } else {
+        alert(
+          "Замовлення створено, але не вдалося отримати посилання на оплату.",
+        );
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error(error);
+      alert(
+        "Помилка створення замовлення: " +
+          (error.response?.data?.detail || error.message),
+      );
+      setIsProcessing(false);
+    }
+  };
   if (isLoading) {
     return (
       <main
@@ -244,13 +278,27 @@ function CartPage() {
               <span>Разом</span>
               <span className="total-price">{totalToPay} ₴</span>
             </div>
+
+            {/* ОНОВЛЕНА КНОПКА MONOBANK */}
+            <button
+              className="btn-mono-pay"
+              disabled={cart.length === 0 || isProcessing}
+              onClick={handleCheckout}
+            >
+              {isProcessing ? "Генерація оплати..." : "Оплатити з mono"}
+            </button>
+
+            {/* Запасна кнопка, якщо захочете повернути перехід на сторінку чекауту:
             <button
               className="btn-checkout-primary"
               disabled={cart.length === 0}
               onClick={() => navigate("/checkout")}
+              style={{ marginTop: "10px" }}
             >
-              Оформити замовлення
-            </button>
+              Ввести дані доставки
+            </button> 
+            */}
+
             {/* Збережи потрібного котика під назвою cat-checkout.png у папці public */}
             <img
               src="/cat-checkout.png"
