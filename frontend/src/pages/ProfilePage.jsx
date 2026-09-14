@@ -506,19 +506,18 @@ function ProfilePage() {
 
           <div className="profile-section-card">
             <div className="profile-section-title-wrapper">
-              <h2 className="profile-section-title">Опитувальник вайбу</h2>
+              <h2 className="profile-section-title">КАРТКИ ДЛЯ ОПЛАТИ</h2>
             </div>
 
             <div className="profile-cards-list">
-              <p className="profile-empty">
-                Пройди опитування і отримай приємний бонус
-              </p>
+              <p className="profile-empty">Збережених карток немає</p>
               <button
-                type="button"
                 className="add-payment-card-btn"
-                onClick={() => navigate("/survey")}
+                onClick={() =>
+                  alert("Функцію додавання картки можна підключити пізніше.")
+                }
               >
-                ПРОЙТИ ОПИТУВАННЯ
+                + ДОДАТИ КАРТКУ
               </button>
             </div>
           </div>

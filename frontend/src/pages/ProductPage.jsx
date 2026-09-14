@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCurrentUser } from "../features/auth/useAuth";
 import { api } from "../shared/api/instance";
 import { useAddFavorite, useFavorites, useRemoveFavorite } from "../features/profile/useProfile";
+
 // Якщо ти вже виніс запити за моєю попередньою порадою,
 // заміни імпорт api на: import { getProductById } from '../entities/Product/api/productApi';
 export const mockProduct = {
@@ -188,6 +189,8 @@ function ProductPage() {
             <div className="gallery-card"></div>
           </div>
         </div>
+
+      
       </div>
     </main>
   );
