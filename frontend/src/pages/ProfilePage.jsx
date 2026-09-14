@@ -506,24 +506,6 @@ function ProfilePage() {
 
           <div className="profile-section-card">
             <div className="profile-section-title-wrapper">
-              <h2 className="profile-section-title">КАРТКИ ДЛЯ ОПЛАТИ</h2>
-            </div>
-
-            <div className="profile-cards-list">
-              <p className="profile-empty">Збережених карток немає</p>
-              <button
-                className="add-payment-card-btn"
-                onClick={() =>
-                  alert("Функцію додавання картки можна підключити пізніше.")
-                }
-              >
-                + ДОДАТИ КАРТКУ
-              </button>
-            </div>
-          </div>
-
-          <div className="profile-section-card">
-            <div className="profile-section-title-wrapper">
               <h2 className="profile-section-title">Опитувальник вайбу</h2>
             </div>
 
