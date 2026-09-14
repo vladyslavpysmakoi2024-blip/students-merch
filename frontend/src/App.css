@@ -3178,11 +3178,12 @@ body.favorites-page-body .app::before {
 
 .survey-hero-cat {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 150px;
-  height: 130px;
-  object-fit: cover;
+  top: 8px;
+  right: 10px;
+  width: 120px;
+  height: auto;
+  max-height: calc(100% - 16px);
+  object-fit: contain;
   object-position: top right;
   pointer-events: none;
   z-index: 2;
@@ -3320,8 +3321,7 @@ body.favorites-page-body .app::before {
   }
 
   .survey-hero-cat {
-    width: 120px;
-    height: 108px;
+    width: 96px;
   }
 
   .survey-panel {
