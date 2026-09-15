@@ -1,5 +1,5 @@
 function ProductCard({ variant, product }) {
-  const photoSrc = product.photos?.[0];
+  const photoSrc = product?.photos?.[0];
 
   return (
     <div

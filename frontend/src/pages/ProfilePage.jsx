@@ -315,7 +315,7 @@ function ProfilePage() {
     }
 
     addToCart(
-      { clothingId }, // Передаємо лише ID товару
+      { clothingId },
       {
         onSuccess: () => {
           alert(`Товар "${item.clothing?.name || ""}" додано в кошик.`);

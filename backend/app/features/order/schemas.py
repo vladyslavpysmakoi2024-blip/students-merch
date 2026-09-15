@@ -25,15 +25,13 @@ class OrderCreateInfoSchema(OrderAddressBase):
     pass
 
 
-# Використовує базову адресу і додає деталі (без id_user, бо він береться з бекенду)
+# Використовує базову схему створення для онлайн-оплати
 class OrderCreateSchema(BaseModel):
     price: Decimal = Field(max_digits=10, decimal_places=2, examples=["0.00"])
     id_clothing: list[int]
 
 
 # Розширює базу для списку
-
-
 class OrderCatalogSchema(OrderDisplayBase):
     id: int
     items_count: int
@@ -65,7 +63,7 @@ class OrderDetailSchema(OrderDisplayBase):
 class OrderCreateResponse(BaseModel):
     status: ResponseStatus = ResponseStatus.SUCCESS
     message: str
-    payment_url: str | None = None  # Додано поле
+    payment_url: str | None = None
 
 
 class MonobankWebhook(BaseModel):

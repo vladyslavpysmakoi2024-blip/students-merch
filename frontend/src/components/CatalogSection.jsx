@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import ProductGrid from "./ProductGrid";
 import { api } from "../shared/api/instance";
+
 function CatalogSection() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+
   const groupedProducts = products.reduce((acc, val) => {
     const key = val.type;
     if (!acc[key]) {
@@ -13,6 +15,7 @@ function CatalogSection() {
     acc[key].push(val);
     return acc;
   }, {});
+
   useEffect(() => {
     const setData = async () => {
       try {
@@ -28,6 +31,7 @@ function CatalogSection() {
     };
     setData();
   }, []);
+
   if (isLoading) {
     return (
       <div
@@ -38,30 +42,32 @@ function CatalogSection() {
           fontSize: "18px",
         }}
       >
-        {" "}
-        Завантаження...{" "}
+        Завантаження...
       </div>
     );
   }
+
   if (isError) {
     return (
-      <div className="product-list-state"> Не вдалося завантажити товари. </div>
+      <div className="product-list-state">Не вдалося завантажити товари.</div>
     );
   }
+
   return (
     <section className="catalog">
-      {" "}
       <div className="catalog-title-wrapper">
-        {" "}
-        <h2 className="catalog-title">КАТАЛОГ</h2>{" "}
-      </div>{" "}
+        <h2 className="catalog-title">КАТАЛОГ</h2>
+      </div>
+
       {Object.entries(groupedProducts).map(([ctg, arr]) => (
         <ProductGrid key={ctg} ctg={ctg} items={arr} />
-      ))}{" "}
+      ))}
+
       {products.length === 0 && (
-        <div className="product-list-state"> Наразі товарів немає. </div>
-      )}{" "}
+        <div className="product-list-state">Наразі товарів немає.</div>
+      )}
     </section>
   );
 }
+
 export default CatalogSection;

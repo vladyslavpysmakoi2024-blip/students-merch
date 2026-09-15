@@ -1,5 +1,4 @@
 [tool.ruff.lint.flake8-bugbear]
-
 extend-immutable-calls = [
     "fastapi.Depends",
     "fastapi.Query",
@@ -11,17 +10,13 @@ extend-immutable-calls = [
 ]
 
 [tool.ruff]
-
 extend-exclude = ["migrations"]
-
 line-length = 120
 
 [tool.ruff.lint]
-
 ignore = ["EXE002"]
 
 [tool.pylint.main]
-
 ignore-paths = ["migrations/.*"]
 
 [tool.pylint.messages_control]

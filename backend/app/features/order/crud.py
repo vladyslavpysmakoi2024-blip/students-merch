@@ -24,7 +24,7 @@ async def get_orders_catalog(db: AsyncSession, user_id: int) -> list[dict]:
     query = (
         select(
             Order.id,
-            Order.price,  # <--- Замінили cost на price
+            Order.price,
             Order.delivery_company,
             Order.date,
             func.count(OrderContent.id).label("items_count"),
@@ -48,7 +48,6 @@ async def get_orders_catalog(db: AsyncSession, user_id: int) -> list[dict]:
 
 
 async def create_order(db: AsyncSession, user: User, payload: OrderCreateSchema) -> Order:
-    # Генеруємо поточний час у UTC і прибираємо інформацію про часовий пояс
     current_naive_time = datetime.now(timezone.utc).replace(tzinfo=None)
 
     new_order = Order(
@@ -60,7 +59,8 @@ async def create_order(db: AsyncSession, user: User, payload: OrderCreateSchema)
     await db.flush()
 
     for item_id in payload.id_clothing:
-        new_order_content = OrderContent(id_clothing=item_id, id_order=new_order.id)
+        new_order_content = OrderContent(
+            id_clothing=item_id, id_order=new_order.id)
         db.add(new_order_content)
 
     await db.commit()

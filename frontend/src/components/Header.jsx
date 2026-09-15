@@ -125,7 +125,11 @@ function Header() {
               </Link>
             ) : (
               <Link to="/login" className="login-icon-bold">
-                <CiLogin size="60px" color="var(--secondary-yellow)" strokeWidth={1} />
+                <CiLogin
+                  size="60px"
+                  color="var(--secondary-yellow)"
+                  strokeWidth={1}
+                />
               </Link>
             )}
           </button>

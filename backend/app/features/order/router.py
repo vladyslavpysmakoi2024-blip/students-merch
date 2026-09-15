@@ -28,7 +28,6 @@ async def get_orders_catalog(current_user: User = Depends(get_current_user), db:
 # Інформація для нового замовлення (БЕЗПЕЧНО: беремо юзера з токена)
 @router.get("/new-info", response_model=OrderCreateInfoSchema)
 async def get_info_for_new_order(current_user: User = Depends(get_current_user)):
-    # Нам не потрібен запит в БД, бо всі потрібні дані (city, street) вже є в об'єкті current_user
     return current_user
 
 
@@ -46,16 +45,18 @@ async def create_order(
         payment_url, invoice_id = await create_invoice(amount=float(new_order.price), order_id=new_order.id)
 
         if not payment_url:
-            raise HTTPException(status_code=500, detail="Не вдалося згенерувати посилання на оплату")
+            raise HTTPException(
+                status_code=500, detail="Не вдалося згенерувати посилання на оплату")
 
-        # 3. Зберігаємо invoice_id у щойно створене замовлення (ДОДАНО AWAIT)
+        # 3. Зберігаємо invoice_id у щойно створене замовлення
         await crud_order.update_order_invoice_id(db, order_id=new_order.id, invoice_id=invoice_id)
 
         return {"status": ResponseStatus.SUCCESS, "message": "Order created", "payment_url": payment_url}
 
     except SQLAlchemyError as exc:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error while saving: {exc!s}") from exc
+        raise HTTPException(
+            status_code=500, detail=f"Error while saving: {exc!s}") from exc
 
 
 @router.get("/{order_id}", response_model=OrderDetailSchema)

@@ -363,7 +363,7 @@ body {
   padding-right: clamp(15px, 4vw, 40px);
 }
 
-.hero {
+..hero {
   width: 100%;
   aspect-ratio: 1450 / 257; /* Зберігаємо правильні пропорції */
   margin-top: 38px;
@@ -375,6 +375,7 @@ body {
   position: relative;
   z-index: 1;
 }
+
 .hero::after {
   --stripe-color: rgba(
     138,
@@ -522,7 +523,6 @@ body {
   flex-direction: column;
   gap: 15px;
 }
-
 .content-wrapper {
   display: flex;
   align-items: flex-start;
@@ -562,10 +562,8 @@ body {
 
 .product-container {
   position: relative;
-
   margin-top: 50px;
 }
-
 .product-ctg {
   position: absolute;
   left: 35px;
@@ -594,22 +592,19 @@ body {
   display: flex;
   justify-content: center;
   gap: 30px;
+
   button {
     width: 230px;
     text-align: center;
     margin-top: 0;
-    padding: 5px 20px; /* 👈 МІНЯЙ ЦІ ЧИСЛА, якщо хочеш зробити плашку вужчою/ширшою */
+    padding: 5px 20px;
     display: inline-block;
-    border-radius: 15px;
+    border-radius: 23px;
     background-color: #eaf3b2;
     color: #3d5690;
-    font-size: clamp(20px, 4vw, 30px);
-    margin-bottom: 20px;
-    border-radius: 23px;
-    font-size: 33px; /* 👈 МІНЯЙ ЦЕ ЧИСЛО для розміру тексту */
+    font-size: 33px;
     font-weight: 600;
     margin-bottom: 0;
-
     cursor: pointer;
     border: none;
   }
@@ -627,6 +622,7 @@ body {
   max-height: 290px;
   box-sizing: border-box;
 }
+
 .model-grid {
   max-height: none;
   gap: 30px;
@@ -636,7 +632,7 @@ body {
   width: 140px;
   height: 200px;
   background: #fdfdf5;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); /* М'якша тінь */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
   border-radius: 20px;
   display: flex;
   flex-direction: column;
@@ -695,6 +691,7 @@ body {
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: 30px;
   margin: 0 auto;
+  max-width: none;
   aspect-ratio: 3 / 4; /* 👈 МІНЯЙ ЦІ ЧИСЛА (ширина / висота) ДЛЯ САЙДБАРУ */
   background: #fdfdf5;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
@@ -790,7 +787,6 @@ body.favorites-page-body .app::before {
   gap: 25px;
   width: 100%;
 }
-
 /* Візуальна частина */
 .product-visuals {
   display: flex;
@@ -861,8 +857,7 @@ body.favorites-page-body .app::before {
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
-
-.favorite-badge-btn:hover {
+..favorite-badge-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
@@ -893,7 +888,7 @@ body.favorites-page-body .app::before {
   margin-top: 15px;
 }
 
-.thumbnail-card {
+..thumbnail-card {
   width: 90px;
   height: 113px;
   background: #fdfdf5;
@@ -903,10 +898,11 @@ body.favorites-page-body .app::before {
     transform 0.2s ease,
     box-shadow 0.2s ease;
   cursor: pointer;
-  overflow: hidden; /* ДОДАНО: обрізає все, що вилазить за межі 90x113px */
-  padding: 0; /* ДОДАНО: прибирає стандартні відступи кнопки */
-  border: none; /* ДОДАНО: прибирає рамку кнопки, якщо вона є */
+  overflow: hidden;
+  padding: 0;
+  border: none;
 }
+
 .thumbnail-card:hover {
   transform: translateY(-3px);
   box-shadow: 0px 10px 22px rgba(0, 0, 0, 0.14);
@@ -924,7 +920,6 @@ body.favorites-page-body .app::before {
   align-items: flex-start;
   gap: 20px;
 }
-
 .product-title {
   color: var(--secondary-blue);
   font-size: 24px;
@@ -942,7 +937,7 @@ body.favorites-page-body .app::before {
 .purchase-controls {
   display: flex;
   flex-direction: column;
-  align-items: flex-end; /* Вирівнюємо ціну та кнопку по правому краю */
+  align-items: flex-end;
   gap: 15px;
 }
 
@@ -964,7 +959,7 @@ body.favorites-page-body .app::before {
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
 }
 
-.size-selector {
+..size-selector {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -993,7 +988,7 @@ body.favorites-page-body .app::before {
 }
 
 .gallery-card {
-  flex: 0 0 140px; /* Фіксована ширина карток у галереї */
+  flex: 0 0 140px;
   height: 200px;
   background: #fdfdf5;
   border-radius: 20px;
@@ -1046,6 +1041,7 @@ body.favorites-page-body .app::before {
 .bottom-gallery-track::-webkit-scrollbar {
   display: none; /* Приховуємо скроллбар для краси */
 }
+
 /* Адаптивність */
 @media (max-width: 900px) {
   .product-main-content {
@@ -1069,8 +1065,7 @@ body.favorites-page-body .app::before {
   display: flex;
   justify-content: center;
   align-items: flex-start; /* Замість center притискаємо контейнер до верху */
-  height: calc(100vh - 100px); /* Висота екрана мінус висота хедера */
-  min-height: auto; /* Вбиваємо старе розтягування */
+  min-height: calc(100vh - 100px); /* Висота екрана мінус висота хедера */
   padding: 40px;
   padding-top: 8vh; /* АДАПТАЦІЯ: відступ форми буде рівно 8% від висоти екрана твого ноута */
   box-sizing: border-box;
@@ -1293,7 +1288,7 @@ body.favorites-page-body .app::before {
   text-decoration: underline;
 }
 
-.cat {
+..cat {
   position: absolute;
   pointer-events: none;
   z-index: 1;

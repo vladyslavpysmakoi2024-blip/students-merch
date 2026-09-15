@@ -90,6 +90,7 @@ function CartPage() {
       setIsProcessing(false);
     }
   };
+
   if (isLoading) {
     return (
       <main
@@ -287,17 +288,6 @@ function CartPage() {
             >
               {isProcessing ? "Генерація оплати..." : "Оплатити з mono"}
             </button>
-
-            {/* Запасна кнопка, якщо захочете повернути перехід на сторінку чекауту:
-            <button
-              className="btn-checkout-primary"
-              disabled={cart.length === 0}
-              onClick={() => navigate("/checkout")}
-              style={{ marginTop: "10px" }}
-            >
-              Ввести дані доставки
-            </button> 
-            */}
 
             {/* Збережи потрібного котика під назвою cat-checkout.png у папці public */}
             <img
