@@ -172,7 +172,7 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
     # 4. Створюємо відповідь-редірект на фронтенд
-    response = RedirectResponse(url=f"${FRONTEND_URL}/me")
+    response = RedirectResponse(url=f"{FRONTEND_URL}/me")
 
     # 5. Встановлюємо кукі
     response.set_cookie(
