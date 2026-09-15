@@ -1,42 +1,69 @@
-import React, { useRef, useLayoutEffect, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import ProductCard from './ProductCard';
 import { Link } from 'react-router-dom';
 
+const DRAG_THRESHOLD = 5;
+
 const ProductGrid = ({ ctg, items }) => {
   const parentRef = useRef(null);
-  const [hasHidden, setHasHidden] = useState(false);
+  const dragRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-  useLayoutEffect(() => {
-    const container = parentRef.current;
+  const handlePointerDown = (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
 
-    const checkOverflow = () => {
-      const parentRect = container.getBoundingClientRect();
-      const children = Array.from(container.children);
+    dragRef.current = {
+      startX: e.clientX,
+      startScrollLeft: parentRef.current.scrollLeft,
+      moved: false,
+    };
+  };
 
-      const anyHidden = children.some((child) => {
-        const targetEl = child.firstElementChild || child;
-        const childRect = targetEl.getBoundingClientRect();
+  const handlePointerMove = (e) => {
+    const drag = dragRef.current;
+    if (!drag || (e.buttons & 1) === 0) return;
 
-        return childRect.bottom > parentRect.bottom + 1;
-      })
+    const deltaX = e.clientX - drag.startX;
 
-      setHasHidden(anyHidden);
+    if (!drag.moved) {
+      if (Math.abs(deltaX) < DRAG_THRESHOLD) return;
+
+      drag.moved = true;
+      parentRef.current.setPointerCapture(e.pointerId);
+      setIsDragging(true);
     }
 
-    checkOverflow();
+    parentRef.current.scrollLeft = drag.startScrollLeft - deltaX;
+  };
 
-    const observer = new ResizeObserver(checkOverflow);
-    observer.observe(container);
+  const handlePointerUp = () => {
+    if (!dragRef.current?.moved) {
+      dragRef.current = null;
+    }
+    setIsDragging(false);
+  };
 
-    return () => observer.disconnect();
-
-  }, [items])
-
+  const handleClickCapture = (e) => {
+    if (dragRef.current?.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    dragRef.current = null;
+  };
 
   return (
     <div className='product-container' >
       <div className='product-ctg' >{ctg}</div>
-      <div className="product-grid" ref={parentRef} >
+      <div
+        className={`product-grid ${isDragging ? 'product-grid--dragging' : ''}`}
+        ref={parentRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onClickCapture={handleClickCapture}
+        onDragStart={(e) => e.preventDefault()}
+      >
         {items.map((i) => {
           return (
           <Link key={i.id} to={`/product?id=${i.id}`} style={{ textDecoration: 'none', display: 'contents' }}>

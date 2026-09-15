@@ -34,7 +34,7 @@ async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db
 @router.post("/login", response_model=MessageResponse)
 async def login(payload: UserLogin, response: Response, db: AsyncSession = Depends(get_db)):
     user = await crud_user.get_user_by_email(db, email=payload.email)
-    if not user or not verify_password(payload.password, user.password):
+    if not user or not user.password or not verify_password(payload.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Incorrect email or password",

@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../App.css";
-import { useRegister } from "../features/auth/useAuth";
+import { useLogin, useRegister } from "../features/auth/useAuth";
 import { API_BASE_URL } from "../shared/api/instance";
 
 const Registration = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: register, isPending } = useRegister();
+  const { mutate: login, isPending: isLoginPending } = useLogin();
   const navigate = useNavigate();
 
   const [agreed, setAgreed] = useState(false);
@@ -24,7 +25,7 @@ const Registration = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (isPending) return;
+    if (isPending || isLoginPending) return;
     if (
       !form.firstName.trim() ||
       !form.lastName.trim() ||
@@ -52,7 +53,13 @@ const Registration = () => {
       },
       {
         onSuccess: () => {
-          navigate("/me");
+          login(
+            { email: form.email, password: form.password },
+            {
+              onSuccess: () => navigate("/me"),
+              onError: () => navigate("/login"),
+            },
+          );
         },
         onError: (err) => {
           setError(
@@ -196,7 +203,7 @@ const Registration = () => {
               </p>
             )}
 
-            <button type="submit" className="btn-login" disabled={isPending}>
+            <button type="submit" className="btn-login" disabled={isPending || isLoginPending}>
               Зареєструватися
             </button>
 
