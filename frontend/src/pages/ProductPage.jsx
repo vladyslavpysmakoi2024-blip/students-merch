@@ -266,7 +266,6 @@ function ProductPage() {
                 disabled={galleryPage === 0}
                 onClick={() => setGalleryPage((page) => page - 1)}
                 type="button"
-                aria-label="Попередні товари"
               >
                 ‹
               </button>
@@ -288,7 +287,6 @@ function ProductPage() {
                 disabled={galleryPage >= galleryPageCount - 1}
                 onClick={() => setGalleryPage((page) => page + 1)}
                 type="button"
-                aria-label="Наступні товари"
               >
                 ›
               </button>

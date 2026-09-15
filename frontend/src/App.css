@@ -774,7 +774,7 @@ body.favorites-page-body .app::before {
   padding-bottom: 80px;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 30px;
 }
 
 .product-main-content {
@@ -787,8 +787,7 @@ body.favorites-page-body .app::before {
 .product-info-column {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 20px;
+  gap: 25px;
   width: 100%;
 }
 
@@ -904,18 +903,26 @@ body.favorites-page-body .app::before {
     transform 0.2s ease,
     box-shadow 0.2s ease;
   cursor: pointer;
+  overflow: hidden; /* ДОДАНО: обрізає все, що вилазить за межі 90x113px */
+  padding: 0; /* ДОДАНО: прибирає стандартні відступи кнопки */
+  border: none; /* ДОДАНО: прибирає рамку кнопки, якщо вона є */
 }
-
 .thumbnail-card:hover {
   transform: translateY(-3px);
   box-shadow: 0px 10px 22px rgba(0, 0, 0, 0.14);
 }
-
+.thumbnail-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Фото буде гарно заповнювати картку без спотворень пропорцій */
+  display: block;
+}
 /* Деталі продукту */
 .product-details {
   display: flex;
   justify-content: space-between;
-  padding-top: 20px;
+  align-items: flex-start;
+  gap: 20px;
 }
 
 .product-title {
@@ -935,8 +942,8 @@ body.favorites-page-body .app::before {
 .purchase-controls {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  align-items: flex-end; /* Вирівнюємо ціну та кнопку по правому краю */
+  gap: 15px;
 }
 
 .price-tag {
@@ -958,11 +965,10 @@ body.favorites-page-body .app::before {
 }
 
 .size-selector {
-  grid-column: span 2;
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 5px;
 }
 
 .size-chip {
@@ -975,19 +981,20 @@ body.favorites-page-body .app::before {
 
 /* Нижня галерея (блок з 4 білими картками на синій плашці з макету) */
 .bottom-gallery {
-  margin-top: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
   background: #8fafc6;
   padding: 18px 20px;
   border-radius: 24px;
   box-sizing: border-box;
-  height: 210px;
+  max-width: 750px;
+  overflow: hidden;
 }
 
 .gallery-card {
-  height: 100%;
+  flex: 0 0 140px; /* Фіксована ширина карток у галереї */
+  height: 200px;
   background: #fdfdf5;
   border-radius: 20px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.07);
@@ -995,13 +1002,50 @@ body.favorites-page-body .app::before {
     transform 0.2s ease,
     box-shadow 0.2s ease;
   cursor: pointer;
+  text-decoration: none;
+  overflow: hidden;
 }
 
 .gallery-card:hover {
   transform: translateY(-3px);
   box-shadow: 0px 10px 22px rgba(0, 0, 0, 0.14);
 }
+.gallery-arrow {
+  background: #fdfdf5;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: bold;
+  color: #3d5690;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.gallery-arrow:hover:not(:disabled) {
+  transform: scale(1.1);
+}
 
+.gallery-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.bottom-gallery-track {
+  display: flex;
+  gap: 15px;
+  flex: 1;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+}
+
+.bottom-gallery-track::-webkit-scrollbar {
+  display: none; /* Приховуємо скроллбар для краси */
+}
 /* Адаптивність */
 @media (max-width: 900px) {
   .product-main-content {

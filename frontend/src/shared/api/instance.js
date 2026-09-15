@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+export const API_BASE_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 export const api = axios.create({
   withCredentials: true,
@@ -32,13 +32,22 @@ api.interceptors.response.use(
         originalRequest.url.includes("/auth/register") ||
         originalRequest.url.includes("/auth/refresh"));
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthRoute) {
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isAuthRoute
+    ) {
       if (!isRefreshing) {
         isRefreshing = true;
         originalRequest._retry = true;
 
         try {
-          await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+          await axios.post(
+            `${API_BASE_URL}/auth/refresh`,
+            {},
+            { withCredentials: true },
+          );
           isRefreshing = false;
           onRefreshed();
           return api(originalRequest);
