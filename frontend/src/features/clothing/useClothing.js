@@ -14,6 +14,20 @@ export const clothingKeys = {
   detail: (id) => [...clothingKeys.all, "detail", id],
 };
 
+export const useClothingList = () => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: clothingKeys.list(),
+    queryFn: getSimpleList,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return {
+    clothes: Array.isArray(data) ? data : [],
+    isLoading,
+    isError,
+  };
+};
+
 export const useClothingSearch = ({
   query,
   clothingType,

@@ -24,7 +24,7 @@ async def get_orders_catalog(db: AsyncSession, user_id: int) -> list[dict]:
     query = (
         select(
             Order.id,
-            Order.price,  # <--- Замінили cost на price
+            Order.price,
             Order.delivery_company,
             Order.date,
             func.count(OrderContent.id).label("items_count"),
@@ -48,27 +48,47 @@ async def get_orders_catalog(db: AsyncSession, user_id: int) -> list[dict]:
 
 
 async def create_order(db: AsyncSession, user: User, payload: OrderCreateSchema) -> Order:
-    # Оновлюємо дані користувача
-    user.city = payload.city
-    user.street = payload.street
-    user.house_number = payload.house_number
+    current_naive_time = datetime.now(timezone.utc).replace(tzinfo=None)
 
-    # Створюємо замовлення
     new_order = Order(
         price=payload.price,
-        delivery_company=payload.delivery_company,
-        delivery_type=payload.delivery_type,
-        postal_number=payload.postal_number,
         id_user=user.id,
-        date=datetime.now(timezone.utc),
+        date=current_naive_time,
     )
     db.add(new_order)
     await db.flush()
 
-    # Додаємо товари до замовлення
     for item_id in payload.id_clothing:
         new_order_content = OrderContent(id_clothing=item_id, id_order=new_order.id)
         db.add(new_order_content)
 
     await db.commit()
     return new_order
+
+
+async def update_order_status(db: AsyncSession, order_id: int, new_status: str) -> bool:
+    query = select(Order).where(Order.id == order_id)
+    result = await db.execute(query)
+    order = result.scalar_one_or_none()
+
+    if order:
+        order.status = new_status
+        await db.commit()
+        return True
+    return False
+
+
+async def update_order_invoice_id(db: AsyncSession, order_id: int, invoice_id: str) -> None:
+    query = select(Order).where(Order.id == order_id)
+    result = await db.execute(query)
+    order = result.scalar_one_or_none()
+
+    if order:
+        order.invoice_id = invoice_id
+        await db.commit()
+
+
+async def get_order_by_invoice_id(db: AsyncSession, invoice_id: str) -> Order | None:
+    query = select(Order).where(Order.invoice_id == invoice_id)
+    result = await db.execute(query)
+    return result.scalar_one_or_none()

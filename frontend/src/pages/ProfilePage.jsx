@@ -315,7 +315,7 @@ function ProfilePage() {
     }
 
     addToCart(
-      { clothingId }, // Передаємо лише ID товару
+      { clothingId },
       {
         onSuccess: () => {
           alert(`Товар "${item.clothing?.name || ""}" додано в кошик.`);
@@ -414,7 +414,10 @@ function ProfilePage() {
         </section>
 
         <section className="profile-grid">
-          <div className="profile-section-card" onClick={() => navigate("/favorites")}>
+          <div
+            className="profile-section-card"
+            onClick={() => navigate("/favorites")}
+          >
             <div className="profile-section-title-wrapper">
               <h2 className="profile-section-title">ЗБЕРЕЖЕНЕ</h2>
             </div>
@@ -423,7 +426,9 @@ function ProfilePage() {
               {favoritesLoading ? (
                 <p className="profile-empty">Завантаження...</p>
               ) : favorites.length === 0 ? (
-                <p className="profile-empty">У збереженому поки немає товарів</p>
+                <p className="profile-empty">
+                  У збереженому поки немає товарів
+                </p>
               ) : (
                 favorites.map((item) => {
                   const clothing = item.clothing;
@@ -455,9 +460,9 @@ function ProfilePage() {
                         <button
                           className="profile-small-btn"
                           onClick={(e) => {
-                            handleAddFavoriteToCart(item)
+                            handleAddFavoriteToCart(item);
                             e.stopPropagation();
-                          } }
+                          }}
                         >
                           У КОШИК
                         </button>
@@ -491,9 +496,7 @@ function ProfilePage() {
 
                     <div className="profile-order-status">
                       {order.delivery_company ||
-                        (order.items_count
-                          ? `${order.items_count} тов.`
-                          : "—")}
+                        (order.items_count ? `${order.items_count} тов.` : "—")}
                     </div>
                     <div className="profile-order-total">
                       {formatPrice(order.price)}
@@ -504,7 +507,7 @@ function ProfilePage() {
             </div>
           </div>
 
-          <div className="profile-section-card">
+          {/* <div className="profile-section-card">
             <div className="profile-section-title-wrapper">
               <h2 className="profile-section-title">КАРТКИ ДЛЯ ОПЛАТИ</h2>
             </div>
@@ -520,7 +523,7 @@ function ProfilePage() {
                 + ДОДАТИ КАРТКУ
               </button>
             </div>
-          </div>
+          </div> */}
         </section>
       </main>
 
@@ -664,7 +667,6 @@ function ProfilePage() {
                   placeholder="+380..."
                 />
               </div>
-
             </div>
 
             <div className="profile-modal-footer">

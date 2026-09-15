@@ -13,6 +13,9 @@ extend-immutable-calls = [
 extend-exclude = ["migrations"]
 line-length = 120
 
+[tool.ruff.lint]
+ignore = ["EXE002"]
+
 [tool.pylint.main]
 ignore-paths = ["migrations/.*"]
 

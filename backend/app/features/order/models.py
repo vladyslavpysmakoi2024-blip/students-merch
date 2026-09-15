@@ -3,7 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import TYPE_CHECKING  # ignoring this in runtime
 
-from sqlalchemy import DECIMAL, VARCHAR, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import DECIMAL, VARCHAR, DateTime, Enum, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -24,7 +24,13 @@ class Order(Base):
     date: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
     id_user: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
 
+    status: Mapped[str] = mapped_column(
+        Enum("created", "processing", "paid", "failure", name="orderstatus", create_type=False),
+        default="created",
+        nullable=False,
+    )
     user: Mapped[User] = relationship("User", back_populates="orders")
+    invoice_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     order_content: Mapped[list[OrderContent]] = relationship(
         "OrderContent", back_populates="order", cascade="all, delete-orphan"

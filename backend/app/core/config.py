@@ -22,9 +22,14 @@ DB_SSL = os.getenv("DATABASE_SSL", "disable" if DB_HOST in ("localhost", "127.0.
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "supersecretjwtkey12345_students_merch_shop")
 ACCESS_TOKEN_EXPIRE_IN_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 REFRESH_TOKEN_EXPIRE_IN_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_IN_DAYS", "7"))
+
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
+
+MONOBANK_TOKEN = os.getenv("MONOBANK_TOKEN")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:

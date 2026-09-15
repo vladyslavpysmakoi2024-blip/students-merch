@@ -8,7 +8,7 @@ from app.features.clothing.models import Clothing
 async def get_cart_items(db: AsyncSession, user_id: int):
     query = select(Cart, Clothing).join(Clothing, Cart.id_clothing == Clothing.id).where(Cart.id_user == user_id)
     result = await db.execute(query)
-    # Повертає список кортежів (tuple), де кожен елемент містить (Bin, Clothing)
+    # Повертає список кортежів (tuple), де кожен елемент містить (Cart, Clothing)
     return result.all()
 
 
