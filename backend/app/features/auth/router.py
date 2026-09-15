@@ -64,11 +64,25 @@ async def login(payload: UserLogin, response: Response, db: AsyncSession = Depen
     return {"message": "Successful login"}
 
 
-@router.post("/logout", response_model=MessageResponse)
-async def logout(response: Response):
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    return {"message": "Successful logout"}
+@router.post("/auth/logout")
+def logout(response: Response):
+    # Видаляємо access_token
+    response.delete_cookie(
+        key="access_token",
+        samesite="none",  # 👈 Ці два параметри критично важливі для видалення
+        secure=True,      # 👈
+        httponly=True
+    )
+
+    # Видаляємо refresh_token (якщо використовуєте)
+    response.delete_cookie(
+        key="refresh_token",
+        samesite="none",
+        secure=True,
+        httponly=True
+    )
+
+    return {"message": "Успішний вихід"}
 
 
 @router.post("/refresh", response_model=MessageResponse)
