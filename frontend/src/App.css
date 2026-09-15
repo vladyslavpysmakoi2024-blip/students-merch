@@ -363,7 +363,7 @@ body {
   padding-right: clamp(15px, 4vw, 40px);
 }
 
-..hero {
+.hero {
   width: 100%;
   aspect-ratio: 1450 / 257; /* Зберігаємо правильні пропорції */
   margin-top: 38px;
@@ -857,7 +857,7 @@ body.favorites-page-body .app::before {
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
-..favorite-badge-btn:hover {
+.favorite-badge-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
@@ -888,7 +888,7 @@ body.favorites-page-body .app::before {
   margin-top: 15px;
 }
 
-..thumbnail-card {
+.thumbnail-card {
   width: 90px;
   height: 113px;
   background: #fdfdf5;
@@ -959,7 +959,7 @@ body.favorites-page-body .app::before {
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
 }
 
-..size-selector {
+.size-selector {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -1288,7 +1288,7 @@ body.favorites-page-body .app::before {
   text-decoration: underline;
 }
 
-..cat {
+.cat {
   position: absolute;
   pointer-events: none;
   z-index: 1;

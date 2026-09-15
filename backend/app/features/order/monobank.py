@@ -1,6 +1,6 @@
 import httpx
 
-from app.core.config import MONOBANK_TOKEN, WEBHOOK_URL, FRONTEND_URL
+from app.core.config import FRONTEND_URL, MONOBANK_TOKEN, WEBHOOK_URL
 
 MONO_API_URL = "https://api.monobank.ua/api/merchant/invoice/create"
 

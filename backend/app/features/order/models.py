@@ -20,15 +20,12 @@ class Order(Base):
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     delivery_company: Mapped[str | None] = mapped_column(Text, nullable=True)
     delivery_type: Mapped[str | None] = mapped_column(Text, nullable=True)
-    postal_number: Mapped[str | None] = mapped_column(
-        VARCHAR(20), nullable=True)
+    postal_number: Mapped[str | None] = mapped_column(VARCHAR(20), nullable=True)
     date: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
-    id_user: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=True)
+    id_user: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
 
     status: Mapped[str] = mapped_column(
-        Enum("created", "processing", "paid", "failure",
-             name="orderstatus", create_type=False),
+        Enum("created", "processing", "paid", "failure", name="orderstatus", create_type=False),
         default="created",
         nullable=False,
     )
