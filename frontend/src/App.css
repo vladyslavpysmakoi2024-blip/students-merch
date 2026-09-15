@@ -120,6 +120,59 @@
   transform: scale(0.95);
 }
 
+@media (max-width: 900px) {
+  .title {
+    font-size: 18px;
+  }
+
+  .logo-at-header-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .header-icons {
+    gap: 10px;
+  }
+
+  .header-icons button svg {
+    width: 38px !important;
+    height: 38px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .app {
+    padding: 12px 12px 0;
+  }
+
+  .header {
+    height: 64px;
+    padding: 0 12px;
+    width: calc(100% + 16px);
+    margin: 8px -8px 0;
+  }
+
+  .title {
+    display: none;
+  }
+
+  .logo-at-header-icon {
+    left: 12px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .header-icons {
+    gap: 6px;
+    margin: 0;
+  }
+
+  .header-icons button svg {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
 /* --- ПОШУК --- */
 .search-dropdown {
   position: absolute;
@@ -144,6 +197,15 @@
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
+}
+
+@media (max-width: 600px) {
+  .search-dropdown {
+    top: 80px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
 }
 
 .search-dropdown input {
@@ -508,6 +570,18 @@ body {
   box-sizing: border-box;
 }
 
+@media (max-width: 899px) {
+  .right-sidebar {
+    width: 100%;
+    min-width: 0;
+    padding: 24px;
+  }
+
+  .right-sidebar:empty {
+    display: none;
+  }
+}
+
 .layout {
   margin-top: 30px;
   display: flex;
@@ -612,8 +686,11 @@ body {
 
 .product-grid {
   display: flex;
-  flex-wrap: wrap;
-  overflow: hidden;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  cursor: grab;
+  user-select: none;
   gap: 100px 20px;
   padding: 45px 35px;
   background: rgba(253, 253, 245, 0.6);
@@ -621,6 +698,46 @@ body {
   width: 100%;
   max-height: 290px;
   box-sizing: border-box;
+}
+
+.product-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.product-grid .product-card {
+  flex-shrink: 0;
+}
+
+.product-grid--dragging,
+.product-grid--dragging * {
+  cursor: grabbing;
+}
+
+@media (max-width: 600px) {
+  .product-ctg {
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    max-width: calc(100% - 24px);
+    font-size: 22px;
+    white-space: nowrap;
+  }
+
+  .product-grid {
+    gap: 100px 12px;
+    padding: 36px 14px 20px;
+  }
+
+  .gender-btns {
+    gap: 12px;
+  }
+
+  .gender-btns button {
+    flex: 1;
+    width: auto;
+    padding: 5px 12px;
+    font-size: 22px;
+  }
 }
 
 .model-grid {
@@ -1045,11 +1162,38 @@ body.favorites-page-body .app::before {
 /* Адаптивність */
 @media (max-width: 900px) {
   .product-main-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .bottom-gallery-track {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .product-image-card {
+    width: 100%;
+    padding: 40px 16px;
+    box-sizing: border-box;
+  }
+
+  .product-image-card img {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .product-details {
+    flex-direction: column;
+  }
+
+  .purchase-controls {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .buy-btn {
+    padding: 12px 24px;
+    font-size: 20px;
   }
 }
 
@@ -1399,6 +1543,31 @@ body.favorites-page-body .app::before {
   /* Додаємо підкреслення */
   color: #5677c2;
   /* Робимо колір трохи світлішим, щоб "підсвітити" */
+}
+
+@media (max-width: 600px) {
+  .login-container {
+    padding: 16px;
+    padding-top: 32px;
+    overflow-x: hidden;
+  }
+
+  .login-wrapper {
+    width: 100%;
+  }
+
+  .login-card {
+    padding: 50px 20px 36px;
+    box-sizing: border-box;
+  }
+
+  .registration-card {
+    padding: 44px 18px 24px;
+  }
+
+  .policy-link {
+    white-space: normal;
+  }
 }
 
 /* --- СТОРІНКА ПОШУКУ --- */
@@ -3289,6 +3458,12 @@ body.favorites-page-body .app::before {
   margin: 0;
 }
 
+@media (max-width: 1279px) {
+  .footer-columns {
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 768px) {
   .footer {
     padding: 24px;
@@ -3302,6 +3477,17 @@ body.favorites-page-body .app::before {
   .footer-columns {
     flex-wrap: wrap;
     justify-content: flex-start;
+  }
+
+  .footer-logo {
+    margin-left: -16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer {
+    width: calc(100% + 24px);
+    margin: 40px -12px 0;
   }
 }
 
@@ -3709,6 +3895,10 @@ body.favorites-page-body .app::before {
   }
   .card-form-row {
     flex-direction: column;
+  }
+
+  .order-summary-item {
+    flex-wrap: wrap;
   }
 }
 
