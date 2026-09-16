@@ -14,6 +14,7 @@ import CartPage from "./pages/CartPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import ModelPage from "./pages/ModelPage";
+import SurveyPage from "./pages/SurveyPage";
 
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 
@@ -31,6 +32,7 @@ function App() {
         <Route path="/registration" element={<Registration />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/model" element={<ModelPage />} />
+        <Route path="/survey" element={<SurveyPage />} />
 
         {/* Захищені маршрути */}
         <Route
