@@ -12,7 +12,7 @@ from app.core.config import (
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
     JWT_SECRET_KEY,
-    FRONTEND_URL
+    FRONTEND_URL,
 )
 from app.core.schemas import MessageResponse
 from app.core.security import create_access_token, create_refresh_token, verify_password
@@ -50,7 +50,7 @@ async def login(payload: UserLogin, response: Response, db: AsyncSession = Depen
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
         samesite="none",  # 👈 Дозволяє передачу куків між різними доменами
-        secure=True
+        secure=True,
     )
     response.set_cookie(
         key="refresh_token",
@@ -58,7 +58,7 @@ async def login(payload: UserLogin, response: Response, db: AsyncSession = Depen
         httponly=True,
         max_age=7 * 24 * 60 * 60,
         samesite="none",  # 👈 Дозволяє передачу куків між різними доменами
-        secure=True
+        secure=True,
     )
 
     return {"message": "Successful login"}
@@ -70,17 +70,12 @@ def logout(response: Response):
     response.delete_cookie(
         key="access_token",
         samesite="none",  # 👈 Ці два параметри критично важливі для видалення
-        secure=True,      # 👈
-        httponly=True
+        secure=True,  # 👈
+        httponly=True,
     )
 
     # Видаляємо refresh_token (якщо використовуєте)
-    response.delete_cookie(
-        key="refresh_token",
-        samesite="none",
-        secure=True,
-        httponly=True
-    )
+    response.delete_cookie(key="refresh_token", samesite="none", secure=True, httponly=True)
 
     return {"message": "Успішний вихід"}
 
@@ -92,18 +87,15 @@ async def refresh_access_token(
     db: AsyncSession = Depends(get_db),
 ):
     if not refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token missing")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token missing")
 
     # 1. Декодуємо токен
     try:
-        payload = jwt.decode(refresh_token, JWT_SECRET_KEY,
-                             algorithms=["HS256"])
+        payload = jwt.decode(refresh_token, JWT_SECRET_KEY, algorithms=["HS256"])
         user_id_str: str = payload.get("sub")
 
         if user_id_str is None or payload.get("type") != "refresh":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         user_id = int(user_id_str)
     except jwt.PyJWTError as exc:
         raise HTTPException(
@@ -114,8 +106,7 @@ async def refresh_access_token(
     # 2. Перевіряємо, чи користувач досі існує в базі даних (використовуємо CRUD)
     user = await crud_user.get_user(db, user_id=user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists")
 
     # 3. Генеруємо новий access токен
     new_access_token = create_access_token(data={"sub": str(user.id)})
@@ -177,8 +168,7 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
 
     # 2. Якщо немає - реєструємо через CRUD
     if not user:
-        user_data = UserGoogleCreate(
-            email=email, first_name=first_name, last_name=last_name)
+        user_data = UserGoogleCreate(email=email, first_name=first_name, last_name=last_name)
         user = await crud_auth.create_user_google(db=db, user_in=user_data)
 
     # 3. Генеруємо токени
