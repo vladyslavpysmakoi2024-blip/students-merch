@@ -19,6 +19,8 @@ class CartItemResponse(BaseModel):
     price: Decimal = Field(max_digits=10, decimal_places=2, examples=["0.00"])
     size: str
     color: HexColor | None = None
+    color_name: str | None = None
+    type: str | None = None
     photo: str | None = Field(
         default=None,
         description="URL-address to photo (HTTPS)",

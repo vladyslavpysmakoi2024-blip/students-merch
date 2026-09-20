@@ -27,6 +27,7 @@ async def search_clothing(title: str, db: AsyncSession = Depends(get_db)):
 async def filter_clothing(
     clothing_type: str | None = None,
     color: str | None = None,
+    size: str | None = None,
     min_price: float | None = None,
     max_price: float | None = None,
     limit: int = Query(default=50, le=100),
@@ -37,6 +38,7 @@ async def filter_clothing(
         db=db,
         clothing_type=clothing_type,
         color=color,
+        size=size,
         min_price=min_price,
         max_price=max_price,
         limit=limit,

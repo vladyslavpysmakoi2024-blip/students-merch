@@ -72,7 +72,7 @@ const getCroppedImageFile = (imageSrc, area) =>
   });
 
 const clothingDetails = (clothing) => {
-  const parts = [clothing?.type, clothing?.color].filter(Boolean);
+  const parts = [clothing?.type, clothing?.color_name].filter(Boolean);
   return parts.length ? parts.join(" · ") : "—";
 };
 
@@ -97,6 +97,7 @@ function ProfilePage() {
     phone_number: user?.phone_number || "",
   });
   const [avatarError, setAvatarError] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
   const [avatarSrc, setAvatarSrc] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -176,7 +177,12 @@ function ProfilePage() {
       },
       {
         onSuccess: () => {
-          setIsEditModalOpen(false);
+          setSaveMessage("Зміни успішно збережено! ✨");
+
+          setTimeout(() => {
+            setSaveMessage("");
+            setIsEditModalOpen(false);
+          }, 3000);
         },
         onError: () => {
           alert("Помилка оновлення");
@@ -690,6 +696,21 @@ function ProfilePage() {
 
             <div className="profile-modal-footer">
               <span className="profile-modal-note">🐱 Усе можна змінити</span>
+
+              {saveMessage && (
+                <div
+                  style={{
+                    color: "#2e7d32",
+                    backgroundColor: "#e8f5e9",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  {saveMessage}
+                </div>
+              )}
 
               <div className="profile-modal-actions">
                 <button

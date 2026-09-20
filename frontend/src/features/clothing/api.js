@@ -15,6 +15,13 @@ export const filterClothing = async (params) => {
   return res.data;
 };
 
+export const getColoredVariants = async ({ name, color }) => {
+  const res = await api.get("clothing/colored", {
+    params: { clname: name, clcolor: color },
+  });
+  return res.data;
+};
+
 export const getClothingDetail = async (id) => {
   const res = await api.get(`clothing/${id}`);
   return res.data;
