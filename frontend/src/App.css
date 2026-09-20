@@ -1753,6 +1753,14 @@ body.favorites-page-body .app::before {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cart-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .cart-item-details {

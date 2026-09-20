@@ -9,10 +9,10 @@ import app.features.user.crud as crud_user
 from app.api.dependencies import get_db
 from app.core.config import (
     ACCESS_TOKEN_EXPIRE_IN_MINUTES,
+    FRONTEND_URL,
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
     JWT_SECRET_KEY,
-    FRONTEND_URL,
 )
 from app.core.schemas import MessageResponse
 from app.core.security import create_access_token, create_refresh_token, verify_password

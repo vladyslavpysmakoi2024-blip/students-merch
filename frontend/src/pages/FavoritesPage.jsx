@@ -93,7 +93,7 @@ function FavoritesPage() {
               {visibleFavorites.map((item) => {
                 const clothing = item.clothing;
                 const photoSrc = clothingPhotoSrc(clothing);
-                const details = [clothing.type, clothing.color]
+                const details = [clothing.type, clothing.color_name]
                   .filter(Boolean)
                   .join(" · ");
 
