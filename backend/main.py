@@ -17,6 +17,7 @@ from app.features.clothing.router import router as clothing_router
 from app.features.favorite.router import router as favorite_router
 from app.features.order.router import router as order_router
 from app.features.promo.router import router as promo_router
+from app.features.survey.router import router as survey_router
 from app.features.user.router import router as user_router
 
 truststore.inject_into_ssl()
@@ -69,6 +70,7 @@ app.include_router(favorite_router)
 app.include_router(order_router)
 app.include_router(user_router)
 app.include_router(promo_router)
+app.include_router(survey_router)
 
 if __name__ == "__main__":
     if "runserver" in sys.argv:

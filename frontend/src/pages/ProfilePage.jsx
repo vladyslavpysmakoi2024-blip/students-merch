@@ -514,14 +514,18 @@ function ProfilePage() {
 
             <div className="profile-cards-list">
               <p className="profile-empty">
-                Пройди опитування і отримай приємний бонус
+                {user.completed_survey
+                  ? "Опитування пройдено. Можна переглянути відповіді."
+                  : "Пройди опитування і отримай приємний бонус"}
               </p>
               <button
                 type="button"
                 className="add-payment-card-btn"
                 onClick={() => navigate("/survey")}
               >
-                ПРОЙТИ ОПИТУВАННЯ
+                {user.completed_survey
+                  ? "ПЕРЕГЛЯНУТИ ВІДПОВІДІ"
+                  : "ПРОЙТИ ОПИТУВАННЯ"}
               </button>
             </div>
           </div>

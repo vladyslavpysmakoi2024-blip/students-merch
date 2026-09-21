@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../App.css";
+import { useSubmitSurvey, useMySurvey } from "../features/survey/useSurvey";
 
 const QUESTIONS = [
   {
@@ -107,7 +109,20 @@ const initialAnswers = QUESTIONS.reduce((acc, question) => {
 }, {});
 
 function SurveyPage() {
+  const navigate = useNavigate();
+  const { survey, isLoading } = useMySurvey();
+  const { mutate: submit, isPending } = useSubmitSurvey();
   const [answers, setAnswers] = useState(initialAnswers);
+
+  useEffect(() => {
+    if (!survey?.answers) return;
+
+    const next = { ...initialAnswers };
+    survey.answers.forEach((item) => {
+      next[item.id] = item.value;
+    });
+    setAnswers(next);
+  }, [survey]);
 
   const handleSelect = (id, value) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
@@ -125,7 +140,47 @@ function SurveyPage() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (isPending) return;
+
+    const payload = QUESTIONS.map((question) => ({
+      id: question.id,
+      title: question.title,
+      type: question.type,
+      value: answers[question.id],
+    }));
+
+    const incomplete = payload.some((item) =>
+      Array.isArray(item.value)
+        ? item.value.length === 0
+        : !String(item.value || "").trim(),
+    );
+
+    if (incomplete) {
+      alert("Відповідай на всі питання.");
+      return;
+    }
+
+    submit(
+      { answers: payload },
+      {
+        onSuccess: () => {
+          alert("Дякуємо! Відповіді збережено.");
+          navigate("/me");
+        },
+        onError: () => {
+          alert("Не вдалося надіслати опитування.");
+        },
+      },
+    );
   };
+
+  if (isLoading) {
+    return (
+      <main className="survey-page container">
+        <p className="survey-subtitle">Завантаження...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="survey-page container">
@@ -193,8 +248,12 @@ function SurveyPage() {
         ))}
 
         <div className="survey-actions">
-          <button type="submit" className="profile-action-btn survey-submit">
-            НАДІСЛАТИ
+          <button
+            type="submit"
+            className="profile-action-btn survey-submit"
+            disabled={isPending}
+          >
+            {isPending ? "НАДСИЛАЄМО..." : "НАДІСЛАТИ"}
           </button>
         </div>
       </form>

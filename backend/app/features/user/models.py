@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING  # ignoring this in runtime
 
-from sqlalchemy import Integer, String, Text
+from sqlalchemy import Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from app.features.cart.models import Cart
     from app.features.favorite.models import Favorite
     from app.features.order.models import Order
+    from app.features.survey.models import SurveyResponse
 
 
 class User(Base):
@@ -27,9 +28,14 @@ class User(Base):
     street: Mapped[str | None] = mapped_column(Text, nullable=True)
     house_number: Mapped[str | None] = mapped_column(Text, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    completed_survey: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
 
     favorites: Mapped[list[Favorite]] = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
     orders: Mapped[list[Order]] = relationship("Order", back_populates="user", cascade="all, delete-orphan")
 
     cart: Mapped[list[Cart]] = relationship("Cart", back_populates="user", cascade="all, delete-orphan")
+
+    survey_response: Mapped[SurveyResponse | None] = relationship(
+        "SurveyResponse", back_populates="user", cascade="all, delete-orphan", uselist=False
+    )

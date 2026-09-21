@@ -32,7 +32,14 @@ function App() {
         <Route path="/registration" element={<Registration />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/model" element={<ModelPage />} />
-        <Route path="/survey" element={<SurveyPage />} />
+        <Route
+          path="/survey"
+          element={
+            <ProtectedRoute>
+              <SurveyPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Захищені маршрути */}
         <Route

@@ -19,6 +19,7 @@ from app.features.order.models import Order # noqa
 from app.features.order_content.models import OrderContent # noqa
 from app.features.cart.models import Cart # noqa
 from app.features.promo.models import Promo # noqa
+from app.features.survey.models import SurveyResponse # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
