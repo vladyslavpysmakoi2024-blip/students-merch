@@ -77,8 +77,15 @@ async def submit_survey(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    existing = await crud_survey.get_survey_by_user(db, current_user.id)
+    if current_user.completed_survey or existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Survey is already completed",
+        )
+
     answers = _validate_answers(payload)
-    survey = await crud_survey.upsert_survey(db, current_user, answers)
+    survey = await crud_survey.create_survey(db, current_user, answers)
     return SurveyResponseSchema(
         id=survey.id,
         id_user=survey.id_user,

@@ -16,6 +16,10 @@ import {
   useOrders,
 } from "../features/profile/useProfile";
 import { clothingPhotoSrc } from "../shared/lib/clothingPhoto";
+import {
+  findPackageById,
+  getSavedPackageId,
+} from "../features/survey/packages";
 
 const formatPrice = (price) => {
   if (price == null || price === "") return "—";
@@ -89,6 +93,9 @@ function ProfilePage() {
   const { favorites, isLoading: favoritesLoading } = useFavorites();
   const { orders, isLoading: ordersLoading } = useOrders();
   const { mutate: addToCart } = useAddToCart();
+  const savedPackage = user?.completed_survey
+    ? findPackageById(getSavedPackageId(user.id))
+    : null;
 
   const [editForm, setEditForm] = useState({
     first_name: user?.first_name || "",
@@ -521,7 +528,9 @@ function ProfilePage() {
             <div className="profile-cards-list">
               <p className="profile-empty">
                 {user.completed_survey
-                  ? "Опитування пройдено. Можна переглянути відповіді."
+                  ? savedPackage
+                    ? `Обраний сет: ${savedPackage.tshirt.name} + ${savedPackage.tote.name}. Знижка 15%.`
+                    : "Опитування пройдено. Обери сет футболка + шопер зі знижкою 15%."
                   : "Пройди опитування і отримай приємний бонус"}
               </p>
               <button
@@ -533,6 +542,15 @@ function ProfilePage() {
                   ? "ПЕРЕГЛЯНУТИ ВІДПОВІДІ"
                   : "ПРОЙТИ ОПИТУВАННЯ"}
               </button>
+              {user.completed_survey && (
+                <button
+                  type="button"
+                  className="add-payment-card-btn"
+                  onClick={() => navigate("/survey/reward")}
+                >
+                  ОБРАТИ СЕТ −15%
+                </button>
+              )}
             </div>
           </div>
 

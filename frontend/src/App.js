@@ -15,6 +15,7 @@ import FavoritesPage from "./pages/FavoritesPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import ModelPage from "./pages/ModelPage";
 import SurveyPage from "./pages/SurveyPage";
+import SurveyRewardPage from "./pages/SurveyRewardPage";
 
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 
@@ -37,6 +38,14 @@ function App() {
           element={
             <ProtectedRoute>
               <SurveyPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/survey/reward"
+          element={
+            <ProtectedRoute>
+              <SurveyRewardPage />
             </ProtectedRoute>
           }
         />

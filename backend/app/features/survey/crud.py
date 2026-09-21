@@ -1,4 +1,3 @@
-from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,16 +11,9 @@ async def get_survey_by_user(db: AsyncSession, user_id: int) -> SurveyResponse |
     return result.scalars().first()
 
 
-async def upsert_survey(db: AsyncSession, user: User, answers: list[dict]) -> SurveyResponse:
-    survey = await get_survey_by_user(db, user.id)
-
-    if survey:
-        survey.answers = answers
-        flag_modified(survey, "answers")
-    else:
-        survey = SurveyResponse(id_user=user.id, answers=answers)
-        db.add(survey)
-
+async def create_survey(db: AsyncSession, user: User, answers: list[dict]) -> SurveyResponse:
+    survey = SurveyResponse(id_user=user.id, answers=answers)
+    db.add(survey)
     user.completed_survey = True
     db.add(user)
     await db.commit()
