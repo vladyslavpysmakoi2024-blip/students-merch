@@ -3,6 +3,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+
+def _env_flag(name: str, default: str) -> bool:
+    return os.getenv(name, default).strip().lower() not in ("false", "0", "no", "")
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 if (BASE_DIR / ".env").exists():
@@ -12,6 +17,7 @@ elif (BASE_DIR.parent / ".env").exists():
 else:
     load_dotenv()
 
+DEBUG = os.getenv("DEBUG", "false") != "false"
 DB_USER = os.getenv("DATABASE_USERNAME")
 DB_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DB_NAME = os.getenv("DATABASE_NAME")
@@ -30,6 +36,10 @@ CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
 MONOBANK_TOKEN = os.getenv("MONOBANK_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
+
+REDIS_TIMEOUT = float(os.getenv("REDIS_TIMEOUT", "1"))
+CACHE_ENABLED = _env_flag("CACHE_ENABLED", "true")
+USE_VERCEL_KV = bool(os.getenv("KV_REST_API_URL"))
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:

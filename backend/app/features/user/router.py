@@ -1,12 +1,13 @@
 import cloudinary.exceptions
 import cloudinary.uploader
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Cookie, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
 import app.features.user.crud as crud_user
 from app.api.dependencies import get_current_user, get_db
+from app.core.cache import invalidate_token_cache
 from app.core.config import CLOUDINARY_URL
 from app.core.schemas import MessageResponse
 from app.core.security import verify_password
@@ -127,12 +128,18 @@ async def change_password(
     payload: UserPasswordUpdate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    access_token: str | None = Cookie(default=None),
 ):
     if not verify_password(payload.current_password, current_user.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The current password is incorrect")
 
     try:
         await crud_user.update_password(db, db_user=current_user, new_password=payload.new_password)
+        # Прибираємо закешовану версію цієї сесії — наступний запит
+        # перечитає користувача (та зверне увагу на нові дані) замість
+        # 15 хв ще жити зі старим кешованим станом.
+        if access_token:
+            await invalidate_token_cache(access_token)
         return {"message": "Password successfully changed"}
     except SQLAlchemyError as exc:
         await db.rollback()

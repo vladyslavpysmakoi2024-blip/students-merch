@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 import app as _models_registry  # noqa
+from app.core.config import DEBUG
 from app.db.database import Base, engine
 from app.features.auth.router import router as auth_router
 from app.features.cart.router import router as cart_router
@@ -75,3 +76,18 @@ app.include_router(survey_router)
 if __name__ == "__main__":
     if "runserver" in sys.argv:
         uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+if DEBUG:
+    import time
+
+    from fastapi import Request
+
+    @app.middleware("http")
+    async def add_process_time_header(request: Request, call_next):
+        start_time = time.perf_counter()
+        response = await call_next(request)
+        process_time = time.perf_counter() - start_time
+        response.headers["X-Process-Time"] = f"{process_time:.4f} sec"
+        print(f"⏱ Час виконання {request.method} {request.url.path}: {process_time:.4f} секунд")
+
+        return response

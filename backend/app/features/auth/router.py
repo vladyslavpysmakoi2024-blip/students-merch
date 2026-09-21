@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import app.features.auth.crud as crud_auth
 import app.features.user.crud as crud_user
 from app.api.dependencies import get_db
+from app.core.cache import invalidate_token_cache
 from app.core.config import (
     ACCESS_TOKEN_EXPIRE_IN_MINUTES,
     FRONTEND_URL,
@@ -65,8 +66,11 @@ async def login(payload: UserLogin, response: Response, db: AsyncSession = Depen
 
 
 @router.post("/auth/logout")
-def logout(response: Response):
+async def logout(response: Response, access_token: str | None = Cookie(default=None)):
     # Видаляємо access_token
+    if access_token:
+        await invalidate_token_cache(access_token)
+
     response.delete_cookie(
         key="access_token",
         samesite="none",  # 👈 Ці два параметри критично важливі для видалення
