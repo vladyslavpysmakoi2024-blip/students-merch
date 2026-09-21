@@ -7,6 +7,7 @@ import {
 } from "../features/cart/useCart";
 import { useNavigate } from "react-router-dom";
 import { api } from "../shared/api/instance"; // Додано імпорт API для запиту
+import { isShopper } from "../shared/lib/clothingType";
 
 function CartPage() {
   const navigate = useNavigate();
@@ -167,9 +168,13 @@ function CartPage() {
                 <div className="cart-item-details">
                   <h3>{item.name}</h3>
                   <div className="cart-item-meta">
-                    <span>Колір: {item.color}</span>
-                    <span className="dot-separator">•</span>
-                    <span>Розмір: {item.size}</span>
+                    {item.color_name && <span>Колір: {item.color_name}</span>}
+                    {item.color_name && item.size && !isShopper(item.type) && (
+                      <span className="dot-separator">•</span>
+                    )}
+                    {item.size && !isShopper(item.type) && (
+                      <span>Розмір: {item.size}</span>
+                    )}
                   </div>
                   <p className="cart-item-price-mobile">{item.price} ₴</p>
                 </div>

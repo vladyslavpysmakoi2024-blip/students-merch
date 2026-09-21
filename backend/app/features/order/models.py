@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import TYPE_CHECKING  # ignoring this in runtime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DECIMAL, VARCHAR, DateTime, Enum, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -25,7 +25,7 @@ class Order(Base):
     id_user: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
 
     status: Mapped[str] = mapped_column(
-        Enum("created", "processing", "paid", "failure", name="orderstatus", create_type=False),
+        Enum("created", "processing", "paid", "failure", name="orderstatus"),
         default="created",
         nullable=False,
     )
