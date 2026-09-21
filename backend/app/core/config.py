@@ -17,7 +17,7 @@ elif (BASE_DIR.parent / ".env").exists():
 else:
     load_dotenv()
 
-DEBUG = os.getenv("DEBUG", "false") != "false"
+DEBUG = _env_flag("DEBUG", "false")
 DB_USER = os.getenv("DATABASE_USERNAME")
 DB_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DB_NAME = os.getenv("DATABASE_NAME")
