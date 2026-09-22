@@ -5,7 +5,7 @@ from pathlib import Path
 
 import truststore
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -79,8 +79,6 @@ if __name__ == "__main__":
 
 if DEBUG:
     import time
-
-    from fastapi import Request
 
     @app.middleware("http")
     async def add_process_time_header(request: Request, call_next):

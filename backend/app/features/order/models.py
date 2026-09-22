@@ -3,9 +3,10 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DECIMAL, VARCHAR, DateTime, Enum, ForeignKey, Integer, Text
+from sqlalchemy import DECIMAL, VARCHAR, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.enum_models import EnumStatus
 from app.db.database import Base
 
 if TYPE_CHECKING:
@@ -24,11 +25,8 @@ class Order(Base):
     date: Mapped[DateTime | None] = mapped_column(DateTime, nullable=True)
     id_user: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
 
-    status: Mapped[str] = mapped_column(
-        Enum("created", "processing", "paid", "failure", name="orderstatus"),
-        default="created",
-        nullable=False,
-    )
+    status_id: Mapped[int] = mapped_column(ForeignKey("enum_status.id"), nullable=False)
+    status: Mapped[EnumStatus] = relationship(EnumStatus)
     user: Mapped[User] = relationship("User", back_populates="orders")
     invoice_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 

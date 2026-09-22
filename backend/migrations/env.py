@@ -12,6 +12,7 @@ from app.db.database import Base
 from app.core.config import DATABASE_URL
 
 # Імпорт необхідних моделей для Alembic
+from app.core.enum_models import EnumStatus # noqa
 from app.features.user.models import User # noqa
 from app.features.clothing.models import Clothing # noqa
 from app.features.favorite.models import Favorite # noqa

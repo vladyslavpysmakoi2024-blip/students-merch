@@ -77,7 +77,7 @@ async def _safe_redis_get(cache_key: str):
         app_logger.warning("Redis read timeout (%.1fs) for key %s", REDIS_TIMEOUT, cache_key)
     except (redis.exceptions.RedisError, httpx.HTTPError) as e:
         app_logger.warning("Redis read error (%s): %s", type(e).__name__, e)
-    except Exception as e:  # noqa: BLE001 — кеш не має валити запит
+    except (OSError, ValueError) as e:
         app_logger.warning("Unexpected Redis read error (%s): %s", type(e).__name__, e)
     return None
 
@@ -91,7 +91,7 @@ async def _safe_redis_set(cache_key: str, value: str, ttl: int) -> None:
         app_logger.warning("Redis write timeout (%.1fs) for key %s", REDIS_TIMEOUT, cache_key)
     except (redis.exceptions.RedisError, httpx.HTTPError) as e:
         app_logger.warning("Redis write error (%s): %s", type(e).__name__, e)
-    except Exception as e:  # noqa: BLE001
+    except (OSError, ValueError) as e:
         app_logger.warning("Unexpected Redis write error (%s): %s", type(e).__name__, e)
 
 
@@ -105,7 +105,7 @@ async def _safe_redis_delete(cache_key: str) -> None:
         app_logger.warning("Redis delete timeout (%.1fs) for key %s", REDIS_TIMEOUT, cache_key)
     except (redis.exceptions.RedisError, httpx.HTTPError) as e:
         app_logger.warning("Redis delete error (%s): %s", type(e).__name__, e)
-    except Exception as e:  # noqa: BLE001
+    except (OSError, ValueError) as e:
         app_logger.warning("Unexpected Redis delete error (%s): %s", type(e).__name__, e)
 
 
@@ -250,17 +250,18 @@ def cache_user_token(ttl: int = 900):
             # func() однаково відхилить його з 401.
             try:
                 payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
-                if payload.get("type") != "access":
-                    return await func(*args, **kwargs)
-                exp = payload.get("exp", 0)
             except jwt.PyJWTError:
                 return await func(*args, **kwargs)
 
+            if payload.get("type") != "access":
+                return await func(*args, **kwargs)
+
+            exp = payload.get("exp", 0)
             remaining = int(exp - datetime.now(timezone.utc).timestamp())
             if remaining <= 0:
                 return await func(*args, **kwargs)
-            effective_ttl = min(ttl, remaining)
 
+            effective_ttl = min(ttl, remaining)
             cache_key = f"auth:token:{hashlib.sha256(token.encode()).hexdigest()}"
 
             cached_user = await _safe_redis_get(cache_key)
