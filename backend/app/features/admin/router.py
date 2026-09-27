@@ -1,16 +1,13 @@
 from collections.abc import Sequence
 
-import cloudinary.exceptions
-import cloudinary.uploader
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.concurrency import run_in_threadpool
 
 import app.features.admin.crud as crud_admin
 import app.features.clothing.crud as crud_clothing
 from app.api.dependencies import get_current_admin, get_db
-from app.core.cache import clear_site_cache, clear_user_cache
+from app.core.cache import clear_clothing_cache, clear_site_cache, clear_user_cache
 from app.core.schemas import MessageResponse
 from app.features.admin.schemas import (
     ClothingBulkCreate,
@@ -23,7 +20,7 @@ from app.features.admin.schemas import (
 )
 from app.features.clothing.models import Clothing
 from app.features.clothing.schemas import ClothingDetailSchema
-from app.features.user.router import ALLOWED_AVATAR_TYPES, MAX_AVATAR_SIZE, require_cloudinary
+from app.features.user.router import upload_image
 
 router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(get_current_admin)])
 
@@ -31,7 +28,7 @@ PROMO_EXISTS_DETAIL = "Такий промокод уже існує"
 
 
 async def get_clothes_or_404(db: AsyncSession, ids: set[int]) -> Sequence[Clothing]:
-    clothes = await crud_admin.get_clothes_by_ids(db, ids)
+    clothes = await crud_clothing.get_clothes_by_ids(db, ids)
     missing = ids - {clothing.id for clothing in clothes}
     if missing:
         raise HTTPException(
@@ -73,9 +70,7 @@ async def update_clothes(payload: ClothingBulkUpdate, db: AsyncSession = Depends
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error while saving clothing") from exc
 
-    await clear_site_cache("/clothing/simple-list")
-    for clothing_id in ids:
-        await clear_site_cache(f"/clothing/{clothing_id}")
+    await clear_clothing_cache(ids)
     return clothes
 
 
@@ -102,9 +97,7 @@ async def delete_clothes(payload: ClothingIds, db: AsyncSession = Depends(get_db
             status_code=status.HTTP_409_CONFLICT, detail="Товар щойно додали в замовлення, його не можна видалити"
         ) from exc
 
-    await clear_site_cache("/clothing/simple-list")
-    for clothing_id in ids:
-        await clear_site_cache(f"/clothing/{clothing_id}")
+    await clear_clothing_cache(ids)
     for user_id in favorite_user_ids:
         await clear_user_cache(func_name="get_favorites", user_id=user_id)
     return {"message": "Clothing deleted"}
@@ -122,36 +115,13 @@ async def update_clothing(clothing_id: int, payload: ClothingCreate, db: AsyncSe
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error while saving clothing") from exc
 
-    await clear_site_cache("/clothing/simple-list")
-    await clear_site_cache(f"/clothing/{clothing_id}")
+    await clear_clothing_cache([clothing_id])
     return clothing
 
 
 @router.post("/clothing/photo")
 async def upload_clothing_photo(file: UploadFile = File(...)):  # noqa
-    require_cloudinary()
-
-    if file.content_type not in ALLOWED_AVATAR_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Дозволені лише зображення JPEG, PNG або WebP"
-        )
-
-    content = await file.read()
-
-    if not content:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Файл порожній")
-
-    if len(content) > MAX_AVATAR_SIZE:
-        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="Максимальний розмір фото — 5 МБ")
-
-    try:
-        result = await run_in_threadpool(cloudinary.uploader.upload, content, folder="clothing", resource_type="image")
-    except cloudinary.exceptions.Error as exc:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY, detail="Не вдалося завантажити фото. Спробуй ще раз"
-        ) from exc
-
-    return {"url": result["secure_url"]}
+    return {"url": await upload_image(file, folder="clothing")}
 
 
 @router.get("/promo", response_model=list[PromoAdminSchema])

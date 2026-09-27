@@ -36,8 +36,8 @@ class OrderCreateInfoSchema(OrderAddressBase):
 
 # Використовує базову схему створення для онлайн-оплати
 class OrderCreateSchema(BaseModel):
-    price: Decimal = Field(max_digits=10, decimal_places=2, examples=["0.00"])
-    id_clothing: list[int]
+    id_clothing: list[int] = Field(min_length=1, max_length=100)
+    promo: str | None = Field(default=None, max_length=50)
 
 
 # Розширює базу для списку

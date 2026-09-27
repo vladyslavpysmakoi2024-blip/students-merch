@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,6 +28,11 @@ async def get_clothing_by_id(db: AsyncSession, clothing_id: int) -> Clothing | N
     query = select(Clothing).where(Clothing.id == clothing_id)
     result = await db.execute(query)
     return result.scalar_one_or_none()
+
+
+async def get_clothes_by_ids(db: AsyncSession, ids: set[int]) -> Sequence[Clothing]:
+    result = await db.execute(select(Clothing).where(Clothing.id.in_(ids)).order_by(Clothing.id))
+    return result.scalars().all()
 
 
 async def search_clothing(db: AsyncSession, title: str):

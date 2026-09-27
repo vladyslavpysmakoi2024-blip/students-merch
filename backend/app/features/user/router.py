@@ -32,6 +32,32 @@ def require_cloudinary():
         )
 
 
+async def upload_image(file: UploadFile, **options) -> str:
+    require_cloudinary()
+
+    if file.content_type not in ALLOWED_AVATAR_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Дозволені лише зображення JPEG, PNG або WebP"
+        )
+
+    content = await file.read()
+
+    if not content:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Файл порожній")
+
+    if len(content) > MAX_AVATAR_SIZE:
+        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="Максимальний розмір фото — 5 МБ")
+
+    try:
+        result = await run_in_threadpool(cloudinary.uploader.upload, content, resource_type="image", **options)
+    except cloudinary.exceptions.Error as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail="Не вдалося завантажити фото. Спробуй ще раз"
+        ) from exc
+
+    return result["secure_url"]
+
+
 @router.get("/me", response_model=UserResponse)
 async def get_user(current_user: User = Depends(get_current_user)):
     # Завдяки from_attributes=True у схемі UserResponse,
@@ -70,36 +96,9 @@ async def upload_avatar(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    require_cloudinary()
+    avatar_url = await upload_image(file, public_id=avatar_public_id(current_user.id), overwrite=True, invalidate=True)
 
-    if file.content_type not in ALLOWED_AVATAR_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Дозволені лише зображення JPEG, PNG або WebP"
-        )
-
-    content = await file.read()
-
-    if not content:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Файл порожній")
-
-    if len(content) > MAX_AVATAR_SIZE:
-        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="Максимальний розмір фото — 5 МБ")
-
-    try:
-        result = await run_in_threadpool(
-            cloudinary.uploader.upload,
-            content,
-            public_id=avatar_public_id(current_user.id),
-            overwrite=True,
-            invalidate=True,
-            resource_type="image",
-        )
-    except cloudinary.exceptions.Error as exc:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY, detail="Не вдалося завантажити фото. Спробуй ще раз"
-        ) from exc
-
-    updated_user = await crud_user.update_avatar(db, db_user=current_user, avatar_url=result["secure_url"])
+    updated_user = await crud_user.update_avatar(db, db_user=current_user, avatar_url=avatar_url)
     return {"avatar_url": updated_user.avatar_url}
 
 

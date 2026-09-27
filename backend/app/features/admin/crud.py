@@ -18,11 +18,6 @@ async def get_all_clothes(db: AsyncSession) -> Sequence[Clothing]:
     return result.scalars().all()
 
 
-async def get_clothes_by_ids(db: AsyncSession, ids: set[int]) -> Sequence[Clothing]:
-    result = await db.execute(select(Clothing).where(Clothing.id.in_(ids)).order_by(Clothing.id))
-    return result.scalars().all()
-
-
 async def create_clothes(db: AsyncSession, items: list[ClothingCreate]) -> list[Clothing]:
     clothes = [Clothing(**item.model_dump()) for item in items]
     db.add_all(clothes)
