@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import os
+from collections.abc import Iterable
 from datetime import datetime, timezone
 from functools import wraps
 
@@ -297,6 +298,12 @@ async def clear_user_cache(func_name: str, user_id: int):
 
 async def clear_site_cache(path: str) -> None:
     await _safe_redis_delete(f"cache:{path}")
+
+
+async def clear_clothing_cache(clothing_ids: Iterable[int]) -> None:
+    await clear_site_cache("/clothing/simple-list")
+    for clothing_id in clothing_ids:
+        await clear_site_cache(f"/clothing/{clothing_id}")
 
 
 async def invalidate_token_cache(token: str) -> None:

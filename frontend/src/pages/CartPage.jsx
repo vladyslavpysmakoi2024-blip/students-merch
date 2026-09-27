@@ -68,10 +68,10 @@ function CartPage() {
         Array(item.quantity).fill(item.product_id),
       );
 
-      // Відправляємо лише суму, поточну дату та ID товарів (без доставки)
+      // Відправляємо лише ID товарів і промокод, суму рахує сервер (без доставки)
       const response = await api.post("/orders", {
-        price: totalToPay,
         id_clothing: clothingIds,
+        promo: promo?.promo,
       });
 
       if (response.data?.payment_url) {
