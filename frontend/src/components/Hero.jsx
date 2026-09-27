@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Hero() {
   return (
     <section className="hero">
@@ -14,6 +16,8 @@ function Hero() {
         <img src="/cat.7.png" alt="" className="hero-cat hero-cat--top-right" />
         <img src="/cat.8.png" alt="" className="hero-cat hero-cat--bottom-right" />
       </div>
+
+      <Link to="/model" className="hero-btn-3d">Твоя 3D-модель</Link>
     </section>
   );
 }

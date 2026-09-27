@@ -536,25 +536,44 @@ body {
 .hero-cat--top-left {
   top: 0px;
   left: 13%;
-  width: 120px; /* Розмір котика */
+  width: 160px; /* Розмір котика */
 }
 
 .hero-cat--bottom-left {
   bottom: 0;
   left: 0;
-  width: 80px;
+  width: 115px;
 }
 
 .hero-cat--top-right {
-  top: 0px; /* Притискаємо до верху */
-  right: 0%; /* Притискаємо праворуч, щоб кут зрізався по контуру плашки */
-  width: 160px;
+  top: 0px;
+  right: 0%;
+  width: 210px;
 }
 
 .hero-cat--bottom-right {
   bottom: 0px;
   right: 13%;
-  width: 115px;
+  width: 160px;
+}
+
+.hero-btn-3d {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  color: #3d5690;
+  font-family: "Unbounded", sans-serif;
+  font-size: 5rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+
+.hero-btn-3d:hover {
+  opacity: 0.7;
 }
 
 .layout {
