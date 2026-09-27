@@ -295,6 +295,10 @@ async def clear_user_cache(func_name: str, user_id: int):
     await _safe_redis_delete(cache_key)
 
 
+async def clear_site_cache(path: str) -> None:
+    await _safe_redis_delete(f"cache:{path}")
+
+
 async def invalidate_token_cache(token: str) -> None:
     """
     Видаляє закешованого користувача для конкретного access-токена.

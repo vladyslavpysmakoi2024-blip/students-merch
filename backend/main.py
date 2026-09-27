@@ -12,6 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 import app as _models_registry  # noqa
 from app.core.config import DEBUG
 from app.db.database import Base, engine
+from app.features.admin.router import router as admin_router
 from app.features.auth.router import router as auth_router
 from app.features.cart.router import router as cart_router
 from app.features.clothing.router import router as clothing_router
@@ -72,6 +73,7 @@ app.include_router(order_router)
 app.include_router(user_router)
 app.include_router(promo_router)
 app.include_router(survey_router)
+app.include_router(admin_router)
 
 if __name__ == "__main__":
     if "runserver" in sys.argv:

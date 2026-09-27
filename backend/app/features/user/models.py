@@ -29,6 +29,7 @@ class User(Base):
     house_number: Mapped[str | None] = mapped_column(Text, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     completed_survey: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
 
     favorites: Mapped[list[Favorite]] = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
