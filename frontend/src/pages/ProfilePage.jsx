@@ -16,6 +16,10 @@ import {
   useOrders,
 } from "../features/profile/useProfile";
 import { clothingPhotoSrc } from "../shared/lib/clothingPhoto";
+import {
+  findPackageById,
+  getSavedPackageId,
+} from "../features/survey/packages";
 
 const formatPrice = (price) => {
   if (price == null || price === "") return "—";
@@ -72,7 +76,7 @@ const getCroppedImageFile = (imageSrc, area) =>
   });
 
 const clothingDetails = (clothing) => {
-  const parts = [clothing?.type, clothing?.color].filter(Boolean);
+  const parts = [clothing?.type, clothing?.color_name].filter(Boolean);
   return parts.length ? parts.join(" · ") : "—";
 };
 
@@ -89,6 +93,9 @@ function ProfilePage() {
   const { favorites, isLoading: favoritesLoading } = useFavorites();
   const { orders, isLoading: ordersLoading } = useOrders();
   const { mutate: addToCart } = useAddToCart();
+  const savedPackage = user?.completed_survey
+    ? findPackageById(getSavedPackageId(user.id))
+    : null;
 
   const [editForm, setEditForm] = useState({
     first_name: user?.first_name || "",
@@ -97,6 +104,7 @@ function ProfilePage() {
     phone_number: user?.phone_number || "",
   });
   const [avatarError, setAvatarError] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
   const [avatarSrc, setAvatarSrc] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -176,7 +184,12 @@ function ProfilePage() {
       },
       {
         onSuccess: () => {
-          setIsEditModalOpen(false);
+          setSaveMessage("Зміни успішно збережено! ✨");
+
+          setTimeout(() => {
+            setSaveMessage("");
+            setIsEditModalOpen(false);
+          }, 3000);
         },
         onError: () => {
           alert("Помилка оновлення");
@@ -514,15 +527,30 @@ function ProfilePage() {
 
             <div className="profile-cards-list">
               <p className="profile-empty">
-                Пройди опитування і отримай приємний бонус
+                {user.completed_survey
+                  ? savedPackage
+                    ? `Обраний сет: ${savedPackage.tshirt.name} + ${savedPackage.tote.name}. Знижка 15%.`
+                    : "Опитування пройдено. Обери сет футболка + шопер зі знижкою 15%."
+                  : "Пройди опитування і отримай приємний бонус"}
               </p>
               <button
                 type="button"
                 className="add-payment-card-btn"
                 onClick={() => navigate("/survey")}
               >
-                ПРОЙТИ ОПИТУВАННЯ
+                {user.completed_survey
+                  ? "ПЕРЕГЛЯНУТИ ВІДПОВІДІ"
+                  : "ПРОЙТИ ОПИТУВАННЯ"}
               </button>
+              {user.completed_survey && (
+                <button
+                  type="button"
+                  className="add-payment-card-btn"
+                  onClick={() => navigate("/survey/reward")}
+                >
+                  ОБРАТИ СЕТ −15%
+                </button>
+              )}
             </div>
           </div>
 
@@ -690,6 +718,21 @@ function ProfilePage() {
 
             <div className="profile-modal-footer">
               <span className="profile-modal-note">🐱 Усе можна змінити</span>
+
+              {saveMessage && (
+                <div
+                  style={{
+                    color: "#2e7d32",
+                    backgroundColor: "#e8f5e9",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  {saveMessage}
+                </div>
+              )}
 
               <div className="profile-modal-actions">
                 <button

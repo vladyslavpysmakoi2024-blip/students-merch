@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.cart.crud as crud_cart
 from app.api.dependencies import get_current_user, get_db
+from app.core.colors import color_name
 from app.core.schemas import ResponseStatus
 from app.features.cart.schemas import (
     CartAddResponse,
@@ -31,7 +32,9 @@ async def get_user_cart(current_user: User = Depends(get_current_user), db: Asyn
             name=item.Clothing.name or "",
             price=item.Clothing.price,
             size=item.Clothing.size or "",
-            color=item.Clothing.color or "",
+            color=item.Clothing.color or None,
+            color_name=color_name(item.Clothing.color),
+            type=item.Clothing.type,
             photo=item.Clothing.photos[0] if (item.Clothing.photos and len(item.Clothing.photos) > 0) else None,
             quantity=getattr(item.Cart, "quantity", 1),
         )

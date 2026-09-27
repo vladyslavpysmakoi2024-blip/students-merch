@@ -1,10 +1,11 @@
 import jwt
 from fastapi import Depends, HTTPException, Request, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.cache import cache_user_token
 from app.core.config import JWT_SECRET_KEY
 from app.db.database import AsyncSessionLocal
+from app.features.user.crud import get_user
 from app.features.user.models import User
 
 
@@ -17,6 +18,7 @@ async def get_db():
 
 
 # Залежність для отримання поточного користувача
+@cache_user_token(ttl=900)
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -41,13 +43,15 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
     except jwt.PyJWTError as exc:
         raise credentials_exception from exc
 
-    # Ідеально винести цей запит у crud_user.py, наприклад:
-    # user = await crud_user.get_user(db, user_id=user_id_int)
-    query = select(User).where(User.id == user_id_int)
-    result = await db.execute(query)
-    user = result.scalars().first()
+    user = await get_user(db, user_id_int)
 
     if user is None:
         raise credentials_exception
 
     return user
+
+
+async def get_current_admin(current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return current_user

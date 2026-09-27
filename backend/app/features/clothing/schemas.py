@@ -1,7 +1,8 @@
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
+from app.core.colors import color_name
 from app.core.types import HexColor
 
 
@@ -23,6 +24,11 @@ class ClothingBase(BaseModel):
             return self.model_copy(update={"photo": self.photos[0]})  # pylint: disable=unsubscriptable-object
         return self
 
+    @computed_field
+    @property
+    def color_name(self) -> str | None:
+        return color_name(self.color)
+
 
 # Схема для списків не додає нічого нового, лише використовує базу
 class ClothingSimpleSchema(ClothingBase):
@@ -38,8 +44,9 @@ class ClothingDetailSchema(ClothingBase):
 
 # Базова схема для залишків
 class ClothingColoredSchema(BaseModel):
-    size: str
-    quantity: int
+    id: int
+    size: str | None = None
+    quantity: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

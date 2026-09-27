@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.core.schemas import ResponseStatus
 
@@ -16,6 +16,15 @@ class OrderDisplayBase(BaseModel):
     price: Decimal = Field(max_digits=10, decimal_places=2, examples=["0.00"])
     delivery_company: str | None = None
     date: datetime | None = None
+
+    status: str
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def extract_status_string(cls, value) -> str:
+        if hasattr(value, "data"):
+            return value.data
+        return value
 
     model_config = ConfigDict(from_attributes=True)
 

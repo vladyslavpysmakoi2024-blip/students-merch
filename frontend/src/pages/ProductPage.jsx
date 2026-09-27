@@ -7,15 +7,18 @@ import { useCurrentUser } from "../features/auth/useAuth";
 import {
   useClothingDetail,
   useClothingList,
+  useClothingVariants,
 } from "../features/clothing/useClothing";
 
 import {
   useAddFavorite,
+  useAddToCart,
   useFavorites,
   useRemoveFavorite,
 } from "../features/profile/useProfile";
 
 import ProductCard from "../components/ProductCard";
+import { isShopper } from "../shared/lib/clothingType";
 
 const GALLERY_PAGE_SIZE = 4;
 
@@ -29,15 +32,14 @@ function ProductPage() {
 
   const { product, isLoading, isError } = useClothingDetail(id);
   const { clothes } = useClothingList();
+  const { variants } = useClothingVariants(product?.name, product?.color);
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
 
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [galleryPage, setGalleryPage] = useState(0);
   const [heartAnim, setHeartAnim] = useState(false);
   const [isFavoriteLocal, setIsFavoriteLocal] = useState(false);
-
-  // Доступні розміри для вибору
-  const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
   const { favorites } = useFavorites(isLoggedIn);
   const { mutate: addFav } = useAddFavorite();
@@ -89,14 +91,78 @@ function ProductPage() {
     };
   }, []);
 
+  const normalizeSize = (value) => String(value ?? "").trim().toUpperCase();
+
+  const isOwnSize = (size) =>
+    normalizeSize(size) === normalizeSize(product?.size);
+
+  const SIZE_ORDER = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+  const sizes = [
+    ...new Map(
+      [product?.size, ...variants.map((variant) => variant.size)]
+        .filter((size) => normalizeSize(size))
+        .map((size) => [normalizeSize(size), String(size).trim()]),
+    ).values(),
+  ].sort((a, b) => {
+    const indexA = SIZE_ORDER.indexOf(normalizeSize(a));
+    const indexB = SIZE_ORDER.indexOf(normalizeSize(b));
+    return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
+  });
+
+  const findOtherVariant = (size) =>
+    variants.find((variant) => normalizeSize(variant.size) === normalizeSize(size));
+
+  const isSizeAvailable = (size) => {
+    if (isOwnSize(size)) return true;
+    const variant = findOtherVariant(size);
+    return Boolean(variant) && variant.quantity !== 0;
+  };
+
+  useEffect(() => {
+    setSelectedSize(isShopper(product?.type) ? null : product?.size || null);
+  }, [product?.id, product?.size, product?.type]);
+
   const handleBuyClick = () => {
     if (!isLoggedIn) {
       navigate("/login");
-    } else if (!selectedSize) {
-      alert("Будь ласка, оберіть розмір перед додаванням у кошик!");
-    } else {
-      alert("Товар додано в кошик!");
+      return;
     }
+
+    if (!product?.id) return;
+
+    let clothingId = product.id;
+
+    if (!isShopper(product.type)) {
+      if (!selectedSize) {
+        alert("Будь ласка, оберіть розмір перед додаванням у кошик!");
+        return;
+      }
+
+      if (!isOwnSize(selectedSize)) {
+        const variant = findOtherVariant(selectedSize);
+        if (!variant?.id || variant.quantity === 0) {
+          alert("Такого розміру зараз немає в наявності.");
+          return;
+        }
+        clothingId = variant.id;
+      }
+    }
+
+    addToCart(
+      { clothingId },
+      {
+        onSuccess: () => alert("Товар додано в кошик!"),
+        onError: (error) => {
+          console.error("Не вдалося додати в кошик:", error);
+          const detail = error?.response?.data?.detail;
+          alert(
+            `Помилка при додаванні в кошик${
+              detail ? `: ${JSON.stringify(detail)}` : "."
+            }`,
+          );
+        },
+      },
+    );
   };
 
   if (!id) {
@@ -225,37 +291,48 @@ function ProductPage() {
                 СКЛАД: {product.composition || "БАВОВНА 100%"}
               </p>
 
-              <p className="material-info">ТИП: {product.type}</p>
+              {!isShopper(product.type) && (
+                <p className="material-info">ТИП: {product.type}</p>
+              )}
 
-              <p className="material-info">КОЛІР: {product.color}</p>
+              {product.color_name && (
+                <p className="material-info">КОЛІР: {product.color_name}</p>
+              )}
             </div>
 
             <div className="purchase-controls">
               <div className="price-tag">ЦІНА: {product.price} ₴</div>
 
-              <button className="buy-btn" onClick={handleBuyClick}>
+              <button
+                className="buy-btn"
+                onClick={handleBuyClick}
+                disabled={isAddingToCart}
+              >
                 КУПИТИ
               </button>
 
-              <div className="size-selector">
-                {sizes.map((size) => (
-                  <button
-                    key={size}
-                    className={`size-chip ${
-                      selectedSize === size ? "active" : ""
-                    }`}
-                    onClick={() => setSelectedSize(size)}
-                    style={{
-                      background: selectedSize === size ? "#8AB1C7" : "",
-                      color: selectedSize === size ? "#FDFDF5" : "",
-                      cursor: "pointer",
-                      border: "none",
-                    }}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
+              {!isShopper(product.type) && (
+                <div className="size-selector">
+                  {sizes.map((size) => (
+                    <button
+                      key={size}
+                      className={`size-chip ${
+                        selectedSize === size ? "active" : ""
+                      }`}
+                      onClick={() => setSelectedSize(size)}
+                      style={{
+                        background: selectedSize === size ? "#8AB1C7" : "",
+                        color: selectedSize === size ? "#FDFDF5" : "",
+                        cursor: "pointer",
+                        opacity: isSizeAvailable(size) ? 1 : 0.4,
+                        border: "none",
+                      }}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

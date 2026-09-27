@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   filterClothing,
   getClothingDetail,
+  getColoredVariants,
   getSimpleList,
   searchClothing,
 } from "./api";
@@ -12,6 +13,7 @@ export const clothingKeys = {
   search: (params) => [...clothingKeys.all, "search", params],
   liveSearch: (query) => [...clothingKeys.all, "live", query],
   detail: (id) => [...clothingKeys.all, "detail", id],
+  variants: (name, color) => [...clothingKeys.all, "variants", name, color],
 };
 
 export const useClothingList = () => {
@@ -106,4 +108,15 @@ export const useClothingDetail = (id) => {
     isLoading,
     isError,
   };
+};
+
+export const useClothingVariants = (name, color) => {
+  const { data } = useQuery({
+    queryKey: clothingKeys.variants(name, color),
+    queryFn: () => getColoredVariants({ name, color }),
+    enabled: Boolean(name && color),
+    staleTime: 60 * 1000,
+  });
+
+  return { variants: Array.isArray(data) ? data : [] };
 };

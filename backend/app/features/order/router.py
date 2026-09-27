@@ -18,6 +18,17 @@ from app.features.user.models import User
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
+# Статуси рахунку Monobank -> статуси замовлення в нашій базі (created / processing / paid / failure)
+MONOBANK_STATUS_MAP = {
+    "created": "created",
+    "processing": "processing",
+    "hold": "processing",
+    "success": "paid",
+    "failure": "failure",
+    "expired": "failure",
+    "reversed": "failure",
+}
+
 
 # Отримання каталогу замовлень
 @router.get("", response_model=list[OrderCatalogSchema])
@@ -80,10 +91,12 @@ async def monobank_webhook(payload: MonobankWebhook, db: AsyncSession = Depends(
     order = await crud_order.get_order_by_invoice_id(db, invoice_id=payload.invoiceId)
 
     if order:
-        # 2. Якщо статус success, перетворюємо його на paid
-        final_status = "paid" if payload.status == "success" else payload.status
+        # 2. Перекладаємо статус Monobank у наш (success -> paid тощо).
+        # Невідомий статус ігноруємо, щоб не записати в базу значення, якого немає в enum
+        final_status = MONOBANK_STATUS_MAP.get(payload.status or "")
 
         # 3. Оновлюємо статус у базі за унікальним id цього замовлення
-        await crud_order.update_order_status(db, order_id=order.id, new_status=final_status)
+        if final_status:
+            await crud_order.update_order_status(db, order_id=order.id, new_status=final_status)
 
     return {"status": "ok"}

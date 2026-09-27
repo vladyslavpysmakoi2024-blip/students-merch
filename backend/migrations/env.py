@@ -12,6 +12,7 @@ from app.db.database import Base
 from app.core.config import DATABASE_URL
 
 # Імпорт необхідних моделей для Alembic
+from app.core.enum_models import EnumStatus # noqa
 from app.features.user.models import User # noqa
 from app.features.clothing.models import Clothing # noqa
 from app.features.favorite.models import Favorite # noqa
@@ -19,6 +20,7 @@ from app.features.order.models import Order # noqa
 from app.features.order_content.models import OrderContent # noqa
 from app.features.cart.models import Cart # noqa
 from app.features.promo.models import Promo # noqa
+from app.features.survey.models import SurveyResponse # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

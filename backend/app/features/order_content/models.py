@@ -19,6 +19,7 @@ class OrderContent(Base):
 
     id_clothing: Mapped[int | None] = mapped_column(Integer, ForeignKey("clothing.id"), nullable=True)
     id_order: Mapped[int | None] = mapped_column(Integer, ForeignKey("order.id"), nullable=True)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     clothing: Mapped[Clothing] = relationship("Clothing", back_populates="order_content")
     order: Mapped[Order] = relationship("Order", back_populates="order_content")

@@ -18,9 +18,9 @@ function ProductCard({ variant, product }) {
       <div className="product-card-content">
         <h3 className="product-card-title">{product.name || "Без назви"}</h3>
 
-        {(product.type || product.color) && (
+        {(product.type || product.color_name) && (
           <p className="product-card-meta">
-            {[product.type, product.color].filter(Boolean).join(" · ")}
+            {[product.type, product.color_name].filter(Boolean).join(" · ")}
           </p>
         )}
 

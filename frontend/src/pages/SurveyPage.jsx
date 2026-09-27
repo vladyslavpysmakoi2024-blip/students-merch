@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../App.css";
+import { useCurrentUser } from "../features/auth/useAuth";
+import { useSubmitSurvey, useMySurvey } from "../features/survey/useSurvey";
 
 const QUESTIONS = [
   {
@@ -107,13 +110,30 @@ const initialAnswers = QUESTIONS.reduce((acc, question) => {
 }, {});
 
 function SurveyPage() {
+  const navigate = useNavigate();
+  const { user } = useCurrentUser();
+  const { survey, isLoading } = useMySurvey();
+  const { mutate: submit, isPending } = useSubmitSurvey();
   const [answers, setAnswers] = useState(initialAnswers);
+  const isCompleted = Boolean(survey) || Boolean(user?.completed_survey);
+
+  useEffect(() => {
+    if (!survey?.answers) return;
+
+    const next = { ...initialAnswers };
+    survey.answers.forEach((item) => {
+      next[item.id] = item.value;
+    });
+    setAnswers(next);
+  }, [survey]);
 
   const handleSelect = (id, value) => {
+    if (isCompleted) return;
     setAnswers((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleMultiSelect = (id, value) => {
+    if (isCompleted) return;
     setAnswers((prev) => {
       const current = prev[id];
       const next = current.includes(value)
@@ -125,7 +145,48 @@ function SurveyPage() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (isCompleted || isPending) return;
+
+    const payload = QUESTIONS.map((question) => ({
+      id: question.id,
+      title: question.title,
+      type: question.type,
+      value: answers[question.id],
+    }));
+
+    const incomplete = payload.some((item) =>
+      Array.isArray(item.value)
+        ? item.value.length === 0
+        : !String(item.value || "").trim(),
+    );
+
+    if (incomplete) {
+      alert("Відповідай на всі питання.");
+      return;
+    }
+
+    submit(
+      { answers: payload },
+      {
+        onSuccess: () => {
+          navigate("/survey/reward", {
+            state: { celebrate: true, justCompleted: true },
+          });
+        },
+        onError: () => {
+          alert("Не вдалося надіслати опитування.");
+        },
+      },
+    );
   };
+
+  if (isLoading) {
+    return (
+      <main className="survey-page container">
+        <p className="survey-subtitle">Завантаження...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="survey-page container">
@@ -135,14 +196,32 @@ function SurveyPage() {
           <div className="survey-badge">ОПИТУВАЛЬНИК ВАЙБУ</div>
           <h1 className="survey-title">Вайб-опитувальник</h1>
           <p className="survey-subtitle">
-            Пройди опитування і отримай приємний бонус
+            {isCompleted
+              ? "Опитування вже пройдено. Відповіді лише для перегляду."
+              : "Пройди опитування і отримай приємний бонус"}
           </p>
         </div>
       </section>
 
+      {isCompleted && (
+        <div className="survey-actions survey-actions--start">
+          <button
+            type="button"
+            className="profile-action-btn survey-submit"
+            onClick={() => navigate("/survey/reward")}
+          >
+            ОБРАТИ СЕТ −15%
+          </button>
+        </div>
+      )}
+
       <form className="survey-panel" onSubmit={handleSubmit}>
         {QUESTIONS.map((question, index) => (
-          <fieldset key={question.id} className="survey-question">
+          <fieldset
+            key={question.id}
+            className="survey-question"
+            disabled={isCompleted}
+          >
             <legend className="survey-question-title">
               <span className="survey-question-number">{index + 1}</span>
               {question.title}
@@ -162,6 +241,7 @@ function SurveyPage() {
                 }
                 placeholder={question.placeholder}
                 rows={3}
+                readOnly={isCompleted}
               />
             ) : (
               <div className="survey-options">
@@ -177,6 +257,7 @@ function SurveyPage() {
                       type="button"
                       className={`survey-option${selected ? " is-selected" : ""}`}
                       aria-pressed={selected}
+                      disabled={isCompleted}
                       onClick={() =>
                         question.type === "multiselect"
                           ? handleMultiSelect(question.id, option)
@@ -192,11 +273,17 @@ function SurveyPage() {
           </fieldset>
         ))}
 
-        <div className="survey-actions">
-          <button type="submit" className="profile-action-btn survey-submit">
-            НАДІСЛАТИ
-          </button>
-        </div>
+        {!isCompleted && (
+          <div className="survey-actions">
+            <button
+              type="submit"
+              className="profile-action-btn survey-submit"
+              disabled={isPending}
+            >
+              {isPending ? "НАДСИЛАЄМО..." : "НАДІСЛАТИ"}
+            </button>
+          </div>
+        )}
       </form>
     </main>
   );
