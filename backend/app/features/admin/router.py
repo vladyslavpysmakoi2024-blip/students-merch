@@ -23,7 +23,8 @@ from app.features.admin.schemas import (
 )
 from app.features.clothing.models import Clothing
 from app.features.clothing.schemas import ClothingDetailSchema
-from app.features.user.router import ALLOWED_AVATAR_TYPES, MAX_AVATAR_SIZE, require_cloudinary
+from app.core.config import CLOUDINARY_URL
+from app.core.utils import require_cloudinary, validate_image_file
 
 router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(get_current_admin)])
 
@@ -129,20 +130,8 @@ async def update_clothing(clothing_id: int, payload: ClothingCreate, db: AsyncSe
 
 @router.post("/clothing/photo")
 async def upload_clothing_photo(file: UploadFile = File(...)):  # noqa
-    require_cloudinary()
-
-    if file.content_type not in ALLOWED_AVATAR_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Дозволені лише зображення JPEG, PNG або WebP"
-        )
-
-    content = await file.read()
-
-    if not content:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Файл порожній")
-
-    if len(content) > MAX_AVATAR_SIZE:
-        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="Максимальний розмір фото — 5 МБ")
+    require_cloudinary(CLOUDINARY_URL)
+    content = await validate_image_file(file)
 
     try:
         result = await run_in_threadpool(cloudinary.uploader.upload, content, folder="clothing", resource_type="image")
