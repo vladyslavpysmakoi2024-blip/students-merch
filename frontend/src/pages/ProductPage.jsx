@@ -291,10 +291,6 @@ function ProductPage() {
                 СКЛАД: {product.composition || "БАВОВНА 100%"}
               </p>
 
-              {!isShopper(product.type) && (
-                <p className="material-info">ТИП: {product.type}</p>
-              )}
-
               {product.color_name && (
                 <p className="material-info">КОЛІР: {product.color_name}</p>
               )}

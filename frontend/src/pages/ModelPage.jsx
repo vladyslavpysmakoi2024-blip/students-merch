@@ -11,9 +11,9 @@ import { div } from 'three/src/nodes/math/OperatorNode.js';
 const fakeProducts = [
   {id: 0, type: "Футболки", name: "футболка 1", photo: null, price: 1200, texture: "/textures/tshirts/1.png"},
   {id: 1, type: "Футболки", name: "футболка 1", photo: null, price: 1200, texture: "/textures/tshirts/2.png"},
-  {id: 2, type: "Шоппери", name: "шоппер 1", photo: null, price: 2000, texture: "/textures/bags/1.png"},
-  {id: 3, type: "Шоппери", name: "шоппер 2", photo: null, price: 2000, texture: "/textures/bags/2.png"},
-  {id: 4, type: "Шоппери", name: "шоппер 3", photo: null, price: 2000, texture: "/textures/bags/3.png"},
+  {id: 2, type: "Шопери", name: "шопер 1", photo: null, price: 2000, texture: "/textures/bags/1.png"},
+  {id: 3, type: "Шопери", name: "шопер 2", photo: null, price: 2000, texture: "/textures/bags/2.png"},
+  {id: 4, type: "Шопери", name: "шопер 3", photo: null, price: 2000, texture: "/textures/bags/3.png"},
 ]
 
 const ModelPage = () => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ProductGrid from "./ProductGrid";
 import { api } from "../shared/api/instance";
+import { shopperTypeLabel } from "../shared/lib/clothingType";
 
 function CatalogSection() {
   const [products, setProducts] = useState([]);
@@ -8,7 +9,7 @@ function CatalogSection() {
   const [isError, setIsError] = useState(false);
 
   const groupedProducts = products.reduce((acc, val) => {
-    const key = val.type;
+    const key = shopperTypeLabel(val.type);
     if (!acc[key]) {
       acc[key] = [];
     }

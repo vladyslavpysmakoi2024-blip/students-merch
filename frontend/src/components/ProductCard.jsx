@@ -1,3 +1,5 @@
+import { shopperTypeLabel } from "../shared/lib/clothingType";
+
 function ProductCard({ variant, product }) {
   const photoSrc = product?.photos?.[0];
 
@@ -20,7 +22,7 @@ function ProductCard({ variant, product }) {
 
         {(product.type || product.color_name) && (
           <p className="product-card-meta">
-            {[product.type, product.color_name].filter(Boolean).join(" · ")}
+            {[shopperTypeLabel(product.type), product.color_name].filter(Boolean).join(" · ")}
           </p>
         )}
 

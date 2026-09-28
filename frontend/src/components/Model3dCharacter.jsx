@@ -92,7 +92,7 @@ const Model3dCharacter = ({ activeModels, gender }) => {
           name: "TShirt_Male",
           url: "/models/shared/tshirt.glb"
         },
-        "Шоппери": {
+        "Шопери": {
           "female": {
             name: "Bag",
             url: "/models/female/bag.glb"
