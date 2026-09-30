@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.core.config import FRONTEND_URL, CORS_ORIGINS, DEBUG
+from app.core.config import CORS_ORIGINS, DEBUG, FRONTEND_URL
 from app.db.database import Base, engine
 from app.features.admin.router import router as admin_router
 from app.features.auth.router import router as auth_router
@@ -29,6 +29,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         try:
             from sqlalchemy import text
+            from sqlalchemy.exc import SQLAlchemyError
 
             migrations = [
                 'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS completed_survey BOOLEAN NOT NULL DEFAULT FALSE;',
@@ -38,7 +39,7 @@ async def lifespan(app: FastAPI):
             ]
             for stmt in migrations:
                 await conn.execute(text(stmt))
-        except Exception as e:
+        except SQLAlchemyError as e:
             print(f"Startup migration notice: {e}", flush=True)
     yield
 
@@ -48,21 +49,23 @@ app = FastAPI(title="Students Merch Shop API", lifespan=lifespan)
 # noinspection PyTypeChecker
 app.add_middleware(
     SessionMiddleware,
-    secret_key=os.getenv("SESSION_SECRET_KEY",
-                         "your-fallback-secret-key-12345"),
+    secret_key=os.getenv("SESSION_SECRET_KEY", "your-fallback-secret-key-12345"),
 )
 
-origins = [orig.strip() for orig in CORS_ORIGINS.split(",") if orig.strip()]
+origins = [orig.strip().rstrip("/") for orig in CORS_ORIGINS.split(",") if orig.strip()]
 if FRONTEND_URL:
-    clean_front = FRONTEND_URL.rstrip("/")
-    if clean_front not in origins:
+    clean_front = FRONTEND_URL.strip().rstrip("/")
+    if clean_front and clean_front not in origins:
         origins.append(clean_front)
-if not origins:
-    origins = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://students-merch-beta.vercel.app",
-    ]
+
+for default_origin in [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://students-merch-beta.vercel.app",
+    "https://students-merch.vercel.app",
+]:
+    if default_origin not in origins:
+        origins.append(default_origin)
 
 # noinspection PyTypeChecker
 app.add_middleware(
@@ -96,7 +99,6 @@ if DEBUG:
         response = await call_next(request)
         process_time = time.perf_counter() - start_time
         response.headers["X-Process-Time"] = f"{process_time:.4f} sec"
-        print(
-            f"⏱ Час виконання {request.method} {request.url.path}: {process_time:.4f} секунд")
+        print(f"⏱ Час виконання {request.method} {request.url.path}: {process_time:.4f} секунд")
 
         return response
