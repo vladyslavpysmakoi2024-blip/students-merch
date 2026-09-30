@@ -10,6 +10,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import FRONTEND_URL, CORS_ORIGINS, DEBUG
 from app.db.database import Base, engine
+from app.features.admin.router import router as admin_router
 from app.features.auth.router import router as auth_router
 from app.features.cart.router import router as cart_router
 from app.features.clothing.router import router as clothing_router
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI):
                 'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS completed_survey BOOLEAN NOT NULL DEFAULT FALSE;',
                 "ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS assigned_package_id TEXT;",
                 "ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS is_package_confirmed BOOLEAN NOT NULL DEFAULT FALSE;",
+                "INSERT INTO enum_status (data) SELECT v FROM (VALUES ('CREATED'), ('FAILED'), ('COMPLETED'), ('PROCESSING'), ('PAID')) AS t(v) WHERE NOT EXISTS (SELECT 1 FROM enum_status WHERE data = t.v);",
             ]
             for stmt in migrations:
                 await conn.execute(text(stmt))
@@ -79,6 +81,7 @@ app.include_router(order_router)
 app.include_router(user_router)
 app.include_router(promo_router)
 app.include_router(survey_router)
+app.include_router(admin_router)
 
 if __name__ == "__main__":
     if "runserver" in sys.argv:

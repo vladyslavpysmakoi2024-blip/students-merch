@@ -22,6 +22,8 @@ import {
   findPackageById,
   getSavedPackageId,
 } from "../features/survey/packages";
+import { FiFileText, FiCheckCircle } from "react-icons/fi";
+import { OrderReceiptModal } from "../components/OrderReceiptModal";
 
 const formatPrice = (price) => {
   if (price == null || price === "") return "—";
@@ -104,6 +106,7 @@ function ProfilePage() {
     (survey?.assigned_package_id && findPackageById(survey.assigned_package_id)) ||
     (user?.completed_survey ? findPackageById(getSavedPackageId(user.id)) : null);
 
+  const [selectedReceiptOrderId, setSelectedReceiptOrderId] = useState(null);
   const [editForm, setEditForm] = useState({
     first_name: user?.first_name || "",
     last_name: user?.last_name || "",
@@ -525,24 +528,71 @@ function ProfilePage() {
               ) : orders.length === 0 ? (
                 <p className="profile-empty">Замовлень поки немає</p>
               ) : (
-                orders.map((order) => (
-                  <div key={order.id} className="profile-order-card">
-                    <div className="profile-order-main">
-                      <div className="profile-order-number">№ {order.id}</div>
-                      <div className="profile-order-date">
-                        {formatOrderDate(order.date)}
+                orders.map((order) => {
+                  const isPaid =
+                    order.status &&
+                    ["paid", "оплачено", "success"].includes(
+                      order.status.toLowerCase(),
+                    );
+                  return (
+                    <div
+                      key={order.id}
+                      className={`profile-order-card ${
+                        isPaid ? "is-paid-card" : ""
+                      }`}
+                      onClick={() => {
+                        if (isPaid) setSelectedReceiptOrderId(order.id);
+                      }}
+                    >
+                      <div className="profile-order-main">
+                        <div className="profile-order-number">№ {order.id}</div>
+                        <div className="profile-order-date">
+                          {formatOrderDate(order.date)}
+                        </div>
+                      </div>
+
+                      <div className="profile-order-status">
+                        <div className="profile-order-items-info">
+                          {order.delivery_company ||
+                            (order.items_count
+                              ? `${order.items_count} тов.`
+                              : "—")}
+                        </div>
+                        <div className="profile-order-status-badge-wrap">
+                          {isPaid ? (
+                            <span className="profile-order-paid-badge">
+                              <FiCheckCircle size={13} /> Оплачено
+                            </span>
+                          ) : (
+                            <span className="profile-order-pending-badge">
+                              {order.status === "created"
+                                ? "В обробці"
+                                : order.status || "—"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="profile-order-right">
+                        <div className="profile-order-total">
+                          {formatPrice(order.price)}
+                        </div>
+                        {isPaid && (
+                          <button
+                            className="profile-order-receipt-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedReceiptOrderId(order.id);
+                            }}
+                            title="Переглянути або роздрукувати чек"
+                          >
+                            <FiFileText size={14} /> Чек
+                          </button>
+                        )}
                       </div>
                     </div>
-
-                    <div className="profile-order-status">
-                      {order.delivery_company ||
-                        (order.items_count ? `${order.items_count} тов.` : "—")}
-                    </div>
-                    <div className="profile-order-total">
-                      {formatPrice(order.price)}
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -868,6 +918,13 @@ function ProfilePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedReceiptOrderId && (
+        <OrderReceiptModal
+          orderId={selectedReceiptOrderId}
+          onClose={() => setSelectedReceiptOrderId(null)}
+        />
       )}
     </>
   );

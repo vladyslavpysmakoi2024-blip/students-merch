@@ -6,6 +6,7 @@ from app.core.cache import cache_user_token
 from app.core.config import JWT_SECRET_KEY
 from app.db.database import AsyncSessionLocal
 from app.features.user.crud import get_user
+from app.features.user.models import User
 
 
 async def get_db():
@@ -48,3 +49,9 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
         raise credentials_exception
 
     return user
+
+
+async def get_current_admin(current_user: User = Depends(get_current_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return current_user

@@ -88,7 +88,7 @@ function Header() {
           <Link to="/">
             <img
               className="logo-at-header-icon"
-              src="logo-at-header.png"
+              src="new-logo.svg"
               alt="header"
             />
           </Link>

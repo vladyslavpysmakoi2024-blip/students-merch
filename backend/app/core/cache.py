@@ -8,6 +8,7 @@ from functools import wraps
 
 import httpx
 import jwt
+import redis.asyncio as local_redis
 import redis.exceptions
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
@@ -55,8 +56,6 @@ elif USE_VERCEL_KV and not DEBUG:
     app_logger.debug("Redis type: Vercel KV (Upstash Redis)")
 else:
     # Local test
-    import redis.asyncio as local_redis
-
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     redis_client = local_redis.from_url(REDIS_URL, decode_responses=True)
     app_logger.debug("Redis type: Redis (Local test)")
@@ -236,24 +235,16 @@ def cache_user_token(ttl: int = 900):
                         request = arg
                         break
 
-            # Request відсутній, значить ми виконуємо функцію без кешування
-            if not request:
-                return await func(*args, **kwargs)
+            # Декодуємо токен; якщо щось не так — одразу в func()
+            token = request.cookies.get("access_token") if request else None
+            payload = None
+            if token:
+                try:
+                    payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
+                except jwt.PyJWTError:
+                    pass
 
-            token = request.cookies.get("access_token")
-            if not token:
-                return await func(*args, **kwargs)
-
-            # Декодуємо один раз: беремо exp (щоб не кешувати довше, ніж
-            # живе сам токен) і перевіряємо type, щоб не витрачати запит
-            # у Redis на завідомо непридатний (наприклад, refresh) токен —
-            # func() однаково відхилить його з 401.
-            try:
-                payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
-            except jwt.PyJWTError:
-                return await func(*args, **kwargs)
-
-            if payload.get("type") != "access":
+            if not request or not token or not payload or payload.get("type") != "access":
                 return await func(*args, **kwargs)
 
             exp = payload.get("exp", 0)
@@ -293,6 +284,10 @@ async def clear_user_cache(func_name: str, user_id: int):
     """
     cache_key = f"user_data:{func_name}:{user_id}"
     await _safe_redis_delete(cache_key)
+
+
+async def clear_site_cache(path: str) -> None:
+    await _safe_redis_delete(f"cache:{path}")
 
 
 async def invalidate_token_cache(token: str) -> None:

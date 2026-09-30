@@ -11,25 +11,15 @@ from app.core.cache import invalidate_token_cache
 from app.core.config import CLOUDINARY_URL
 from app.core.schemas import MessageResponse
 from app.core.security import verify_password
+from app.core.utils import require_cloudinary, validate_image_file
 from app.features.user.models import User
 from app.features.user.schemas import UserAndMessageResponse, UserPasswordUpdate, UserResponse, UserUpdate
 
 router = APIRouter(prefix="/user", tags=["User"])
 
-ALLOWED_AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp"}
-MAX_AVATAR_SIZE = 5 * 1024 * 1024
-
 
 def avatar_public_id(user_id: int) -> str:
     return f"avatars/user_{user_id}"
-
-
-def require_cloudinary():
-    if not CLOUDINARY_URL:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Робота з фото недоступна: не налаштовано CLOUDINARY_URL",
-        )
 
 
 @router.get("/me", response_model=UserResponse)
@@ -70,20 +60,8 @@ async def upload_avatar(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    require_cloudinary()
-
-    if file.content_type not in ALLOWED_AVATAR_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Дозволені лише зображення JPEG, PNG або WebP"
-        )
-
-    content = await file.read()
-
-    if not content:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Файл порожній")
-
-    if len(content) > MAX_AVATAR_SIZE:
-        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="Максимальний розмір фото — 5 МБ")
+    require_cloudinary(CLOUDINARY_URL)
+    content = await validate_image_file(file)
 
     try:
         result = await run_in_threadpool(
@@ -105,7 +83,7 @@ async def upload_avatar(
 
 @router.delete("/me/avatar")
 async def delete_avatar(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    require_cloudinary()
+    require_cloudinary(CLOUDINARY_URL)
 
     if not current_user.avatar_url:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Фото профілю не встановлено")

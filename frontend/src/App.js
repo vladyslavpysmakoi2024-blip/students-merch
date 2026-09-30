@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -16,10 +16,17 @@ import CheckoutPage from "./pages/CheckoutPage";
 import ModelPage from "./pages/ModelPage";
 import SurveyPage from "./pages/SurveyPage";
 import SurveyRewardPage from "./pages/SurveyRewardPage";
+import AdminPage from "./pages/AdminPage";
 
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 
 function App() {
+  const { pathname } = useLocation();
+
+  if (pathname.startsWith("/officemanager")) {
+    return <AdminPage />;
+  }
+
   return (
     <div className="app">
       <Header />
