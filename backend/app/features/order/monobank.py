@@ -5,7 +5,11 @@ from app.core.config import FRONTEND_URL, MONOBANK_TOKEN, WEBHOOK_URL
 MONO_API_URL = "https://api.monobank.ua/api/merchant/invoice/create"
 
 
-async def create_invoice(amount: float, order_id: int) -> tuple[str | None, str | None]:
+async def create_invoice(
+    amount: float,
+    order_id: int,
+    basket_items: list[dict] | None = None,
+) -> tuple[str | None, str | None]:
     headers = {"X-Token": MONOBANK_TOKEN}
     payload = {
         "amount": int(amount * 100),  # Монобанк приймає суму в копійках
@@ -15,6 +19,8 @@ async def create_invoice(amount: float, order_id: int) -> tuple[str | None, str 
         # Куди повернути клієнта після оплати
         "redirectUrl": f"{FRONTEND_URL.rstrip('/')}/me" if FRONTEND_URL else "http://localhost:3000/me",
     }
+    if basket_items:
+        payload["basketOrder"] = basket_items
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -23,7 +29,7 @@ async def create_invoice(amount: float, order_id: int) -> tuple[str | None, str 
                 data = response.json()
                 # Повертаємо і урл, і інвойс
                 return data.get("pageUrl"), data.get("invoiceId")
-    except Exception as e:
+    except (httpx.HTTPError, OSError, ValueError) as e:
         print(f"Monobank create_invoice error: {e}", flush=True)
     return None, None
 
@@ -60,6 +66,6 @@ async def get_invoice_status(invoice_id: str) -> dict | None:
                     "receipt_url": receipt_url,
                     "raw": data,
                 }
-    except Exception as e:
+    except (httpx.HTTPError, OSError, ValueError) as e:
         print(f"Monobank get_invoice_status error: {e}", flush=True)
     return None

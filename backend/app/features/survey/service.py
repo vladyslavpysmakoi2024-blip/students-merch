@@ -33,9 +33,7 @@ async def get_dynamic_packages(db: AsyncSession) -> list[dict]:
     tshirts = [
         c
         for c in clothes
-        if "футболк" in (c.type or "").lower()
-        or "tee" in (c.type or "").lower()
-        or "t-shirt" in (c.type or "").lower()
+        if "футболк" in (c.type or "").lower() or "tee" in (c.type or "").lower() or "t-shirt" in (c.type or "").lower()
     ]
     totes = [
         c
