@@ -1,10 +1,14 @@
+from collections import Counter
+
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.order.crud as crud_order
 from app.api.dependencies import get_current_user, get_db
 from app.core.schemas import ResponseStatus
+from app.features.clothing.models import Clothing
 from app.features.order.monobank import create_invoice, get_invoice_status
 from app.features.order.schemas import (
     MonobankWebhook,
@@ -65,16 +69,46 @@ async def create_order(
     db: AsyncSession = Depends(get_db),
 ):
     try:
-        # 1. Створюємо замовлення
+        # 1. Створюємо замовлення в БД
         new_order = await crud_order.create_order(db=db, user=current_user, payload=payload)
 
-        # 2. Звертаємось до API Monobank (отримуємо і url, і invoice_id)
-        payment_url, invoice_id = await create_invoice(amount=float(new_order.price), order_id=new_order.id)
+        # 2. Формуємо список товарів (basketOrder) для фіскалізації та чеків у Monobank
+        basket_items = []
+        if payload.id_clothing:
+            item_counts = Counter(payload.id_clothing)
+            query = select(Clothing).where(Clothing.id.in_(list(item_counts.keys())))
+            res = await db.execute(query)
+            clothings = res.scalars().all()
+            for clothing in clothings:
+                qty = item_counts[clothing.id]
+                item_sum_kop = round(float(clothing.price) * qty * 100)
+                icon_url = clothing.photos[0] if (clothing.photos and len(clothing.photos) > 0) else None
+                item_dict = {
+                    "name": clothing.name or f"Товар #{clothing.id}",
+                    "qty": qty,
+                    "sum": item_sum_kop,
+                    "unit": "шт.",
+                    "code": str(clothing.id),
+                }
+                if icon_url:
+                    item_dict["icon"] = icon_url
+                if clothing.type:
+                    item_dict["header"] = clothing.type
+                if clothing.size:
+                    item_dict["footer"] = f"Розмір: {clothing.size}"
+                basket_items.append(item_dict)
+
+        # 3. Звертаємось до API Monobank (отримуємо і url, і invoice_id)
+        payment_url, invoice_id = await create_invoice(
+            amount=float(new_order.price),
+            order_id=new_order.id,
+            basket_items=basket_items if basket_items else None,
+        )
 
         if not payment_url:
             raise HTTPException(status_code=500, detail="Не вдалося згенерувати посилання на оплату")
 
-        # 3. Зберігаємо invoice_id у щойно створене замовлення
+        # 4. Зберігаємо invoice_id у щойно створене замовлення
         await crud_order.update_order_invoice_id(db, order_id=new_order.id, invoice_id=invoice_id)
 
         return {"status": ResponseStatus.SUCCESS, "message": "Order created", "payment_url": payment_url}
