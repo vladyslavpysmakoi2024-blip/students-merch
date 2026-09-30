@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +20,8 @@ class SurveyResponse(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     id_user: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     answers: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False)
+    assigned_package_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_package_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="false")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False

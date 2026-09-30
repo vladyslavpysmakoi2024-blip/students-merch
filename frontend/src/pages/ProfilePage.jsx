@@ -15,7 +15,9 @@ import {
   useFavorites,
   useOrders,
 } from "../features/profile/useProfile";
+import { useAddPackageToCart } from "../features/cart/useCart";
 import { clothingPhotoSrc } from "../shared/lib/clothingPhoto";
+import { useMySurvey } from "../features/survey/useSurvey";
 import {
   findPackageById,
   getSavedPackageId,
@@ -93,9 +95,14 @@ function ProfilePage() {
   const { favorites, isLoading: favoritesLoading } = useFavorites();
   const { orders, isLoading: ordersLoading } = useOrders();
   const { mutate: addToCart } = useAddToCart();
-  const savedPackage = user?.completed_survey
-    ? findPackageById(getSavedPackageId(user.id))
-    : null;
+  const { mutate: addPackageToCart, isPending: isAddingPackage } =
+    useAddPackageToCart();
+  const [packageCartSuccess, setPackageCartSuccess] = useState(false);
+  const { survey } = useMySurvey();
+  const savedPackage =
+    survey?.package ||
+    (survey?.assigned_package_id && findPackageById(survey.assigned_package_id)) ||
+    (user?.completed_survey ? findPackageById(getSavedPackageId(user.id)) : null);
 
   const [editForm, setEditForm] = useState({
     first_name: user?.first_name || "",
@@ -340,6 +347,26 @@ function ProfilePage() {
     );
   };
 
+  const handleAddPackageToCart = () => {
+    if (!savedPackage) return;
+    addPackageToCart(
+      {
+        packageId: savedPackage.id,
+        tshirtId: savedPackage.tshirt.id,
+        toteId: savedPackage.tote.id,
+      },
+      {
+        onSuccess: () => {
+          setPackageCartSuccess(true);
+          setTimeout(() => setPackageCartSuccess(false), 3000);
+        },
+        onError: () => {
+          alert("Не вдалося додати сет у кошик.");
+        },
+      },
+    );
+  };
+
   return (
     <>
       <main className="profile-page container">
@@ -549,6 +576,21 @@ function ProfilePage() {
                   onClick={() => navigate("/survey/reward")}
                 >
                   ОБРАТИ СЕТ −15%
+                </button>
+              )}
+              {user.completed_survey && savedPackage && (
+                <button
+                  type="button"
+                  className="add-payment-card-btn"
+                  style={{ backgroundColor: "#3d5690", color: "#ffffff" }}
+                  onClick={handleAddPackageToCart}
+                  disabled={isAddingPackage}
+                >
+                  {isAddingPackage
+                    ? "ДОДАВАННЯ..."
+                    : packageCartSuccess
+                    ? "СЕТ ДОДАНО В КОШИК! 🎉"
+                    : "ДОДАТИ СЕТ У КОШИК 🛍️"}
                 </button>
               )}
             </div>

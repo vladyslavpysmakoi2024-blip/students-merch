@@ -30,8 +30,9 @@ async def get_orders_catalog(db: AsyncSession, user_id: int) -> list[dict]:
             func.count(OrderContent.id).label("items_count"),
         )
         .outerjoin(OrderContent, Order.id == OrderContent.id_order)
-        .group_by(Order.id)
         .where(Order.id_user == user_id)
+        .group_by(Order.id, Order.price, Order.delivery_company, Order.date)
+        .order_by(Order.id.desc())
     )
     result = await db.execute(query)
     rows = result.all()

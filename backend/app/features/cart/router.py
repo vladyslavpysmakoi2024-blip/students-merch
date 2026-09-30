@@ -11,8 +11,10 @@ from app.features.cart.schemas import (
     CartItemCreate,
     CartItemResponse,
     CartItemUpdate,
+    CartPackageCreate,
     CartUpdateResponse,
 )
+from app.features.survey.service import resolve_package_by_id
 from app.features.user.models import User
 
 router = APIRouter(prefix="/cart", tags=["Cart"])
@@ -59,6 +61,74 @@ async def add_to_cart(
         return {"status": ResponseStatus.UPDATED, "new_quantity": item.quantity}
 
     return {"status": ResponseStatus.UPDATED, "cart_item_id": item.id}
+
+
+@router.post("/package")
+async def add_package_to_cart(
+    data: CartPackageCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    import app.features.clothing.crud as crud_clothing
+
+    tshirt_id = data.tshirt_id
+    tote_id = data.tote_id
+
+    if (not tshirt_id or not tote_id) and data.package_id:
+        resolved = await resolve_package_by_id(db, data.package_id)
+        if resolved and isinstance(resolved.get("tshirt"), dict) and isinstance(resolved.get("tote"), dict):
+            tshirt_id = resolved["tshirt"].get("id")
+            tote_id = resolved["tote"].get("id")
+
+    # Try converting IDs to integer
+    try:
+        tshirt_id = int(tshirt_id) if tshirt_id is not None else None
+        tote_id = int(tote_id) if tote_id is not None else None
+    except (ValueError, TypeError):
+        tshirt_id = None
+        tote_id = None
+
+    # Verify clothing items in DB or fallback to available clothes
+    tshirt = await crud_clothing.get_clothing_by_id(db, tshirt_id) if tshirt_id else None
+    tote = await crud_clothing.get_clothing_by_id(db, tote_id) if tote_id else None
+
+    if not tshirt or not tote:
+        available = await crud_clothing.get_available_clothes(db)
+        if available:
+            if not tshirt:
+                tshirt = available[0]
+            if not tote:
+                tote = available[min(1, len(available) - 1)]
+        else:
+            raise HTTPException(status_code=400, detail="No available clothes found in catalog")
+
+    item1, _ = await crud_cart.create_or_update_cart_item(
+        db=db,
+        user_id=current_user.id,
+        clothing_id=tshirt.id,
+        quantity=1,
+    )
+    item2, _ = await crud_cart.create_or_update_cart_item(
+        db=db,
+        user_id=current_user.id,
+        clothing_id=tote.id,
+        quantity=1,
+    )
+
+    # Lock / confirm the package for the user permanently
+    import app.features.survey.crud as crud_survey
+
+    survey = await crud_survey.get_survey_by_user(db, current_user.id)
+    if survey and not survey.is_package_confirmed:
+        if data.package_id:
+            survey.assigned_package_id = data.package_id
+        await crud_survey.confirm_package(db, survey)
+
+    return {
+        "status": ResponseStatus.UPDATED,
+        "message": "Package items added to cart successfully",
+        "items": [item1.id, item2.id],
+    }
 
 
 @router.patch("/{cart_id}", response_model=CartUpdateResponse)
