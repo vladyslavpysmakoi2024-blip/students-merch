@@ -11,6 +11,12 @@ class CartItemCreate(BaseModel):
     quantity: int = 1
 
 
+class CartPackageCreate(BaseModel):
+    package_id: str | None = None
+    tshirt_id: int | None = None
+    tote_id: int | None = None
+
+
 class CartItemResponse(BaseModel):
     id: int
     cart_id: int | None = None

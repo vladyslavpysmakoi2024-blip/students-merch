@@ -10,6 +10,8 @@ from app.api.dependencies import get_db
 from app.core.cache import invalidate_token_cache
 from app.core.config import (
     ACCESS_TOKEN_EXPIRE_IN_MINUTES,
+    COOKIE_SAMESITE,
+    COOKIE_SECURE,
     FRONTEND_URL,
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
@@ -50,36 +52,41 @@ async def login(payload: UserLogin, response: Response, db: AsyncSession = Depen
         value=access_token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
-        samesite="none",  # 👈 Дозволяє передачу куків між різними доменами
-        secure=True,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
         max_age=7 * 24 * 60 * 60,
-        samesite="none",  # 👈 Дозволяє передачу куків між різними доменами
-        secure=True,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
     )
 
     return {"message": "Successful login"}
 
 
-@router.post("/auth/logout")
+@router.post("/logout")
 async def logout(response: Response, access_token: str | None = Cookie(default=None)):
-    # Видаляємо access_token
+    # Видаляємо access_token з Redis-кешу
     if access_token:
         await invalidate_token_cache(access_token)
 
     response.delete_cookie(
         key="access_token",
-        samesite="none",  # 👈 Ці два параметри критично важливі для видалення
-        secure=True,  # 👈
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
         httponly=True,
     )
 
-    # Видаляємо refresh_token (якщо використовуєте)
-    response.delete_cookie(key="refresh_token", samesite="none", secure=True, httponly=True)
+    # Видаляємо refresh_token
+    response.delete_cookie(
+        key="refresh_token",
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
+        httponly=True,
+    )
 
     return {"message": "Успішний вихід"}
 
@@ -121,8 +128,8 @@ async def refresh_access_token(
         value=new_access_token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
-        samesite="lax",
-        secure=False,  # Змініть на True у продакшені (HTTPS)
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
     )
 
     return {"message": "Token refreshed"}
@@ -180,7 +187,8 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
     # 4. Створюємо відповідь-редірект на фронтенд
-    response = RedirectResponse(url=f"{FRONTEND_URL}/me")
+    frontend_base = (FRONTEND_URL or "http://localhost:3000").rstrip("/")
+    response = RedirectResponse(url=f"{frontend_base}/me")
 
     # 5. Встановлюємо кукі
     response.set_cookie(
@@ -188,8 +196,8 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
         value=access_token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
-        samesite="lax",
-        secure=False,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
     )
 
     response.set_cookie(
@@ -197,8 +205,8 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
         value=refresh_token,
         httponly=True,
         max_age=7 * 24 * 60 * 60,
-        samesite="lax",
-        secure=False,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
     )
 
     return response

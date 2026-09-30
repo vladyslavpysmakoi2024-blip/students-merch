@@ -2,22 +2,48 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import SurveyConfetti from "../components/SurveyConfetti";
 import { useCurrentUser } from "../features/auth/useAuth";
+import { useAddPackageToCart } from "../features/cart/useCart";
+import {
+  useClaimPackage,
+  useMySurvey,
+  useSurveyPackages,
+} from "../features/survey/useSurvey";
 import {
   findPackageById,
-  getSavedPackageId,
-  savePackageId,
   SURVEY_DISCOUNT_PERCENT,
   SURVEY_PACKAGES,
 } from "../features/survey/packages";
+import { clothingPhotoSrc } from "../shared/lib/clothingPhoto";
 
 function SurveyRewardPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useCurrentUser();
+  const { survey, isLoading: surveyLoading } = useMySurvey();
+  const { packages: dynamicPackages, isLoading: packagesLoading } =
+    useSurveyPackages();
+  const { mutate: claimPackage, isPending: isClaiming } = useClaimPackage();
+  const { mutate: addPackageToCart, isPending: isAddingToCart } =
+    useAddPackageToCart();
+
+  const [cartSuccess, setCartSuccess] = useState(false);
   const justCompleted = Boolean(location.state?.justCompleted);
   const [celebrate, setCelebrate] = useState(Boolean(location.state?.celebrate));
-  const [selectedId, setSelectedId] = useState(() => getSavedPackageId(user?.id));
-  const [savedId, setSavedId] = useState(() => getSavedPackageId(user?.id));
+
+  const assignedPackageId = survey?.assigned_package_id;
+  const isConfirmed = Boolean(survey?.is_package_confirmed);
+  const [selectedId, setSelectedId] = useState(assignedPackageId || null);
+
+  const packagesList =
+    dynamicPackages && dynamicPackages.length > 0
+      ? dynamicPackages
+      : SURVEY_PACKAGES;
+
+  useEffect(() => {
+    if (assignedPackageId) {
+      setSelectedId(assignedPackageId);
+    }
+  }, [assignedPackageId]);
 
   useEffect(() => {
     if (!location.state?.celebrate) return;
@@ -26,19 +52,47 @@ function SurveyRewardPage() {
     return () => window.clearTimeout(timeoutId);
   }, [location.state, navigate]);
 
-  if (!user?.completed_survey && !justCompleted) {
+  if (
+    !user?.completed_survey &&
+    !justCompleted &&
+    !surveyLoading &&
+    !survey
+  ) {
     return <Navigate to="/survey" replace />;
   }
 
-  const savedPackage = findPackageById(savedId);
+  const assignedPackage =
+    survey?.package ||
+    packagesList.find((p) => p.id === assignedPackageId) ||
+    findPackageById(assignedPackageId);
 
-  const handleConfirm = () => {
-    if (!selectedId) {
-      alert("Обери один сет із футболки та шопера.");
-      return;
+  const currentlyActivePackage =
+    packagesList.find((p) => p.id === (selectedId || assignedPackageId)) ||
+    assignedPackage ||
+    packagesList[0];
+
+  const handleAddToCart = (pkg) => {
+    const target = pkg || currentlyActivePackage || assignedPackage;
+    if (!target) return;
+    if (!isConfirmed) {
+      claimPackage(target.id);
     }
-    savePackageId(user.id, selectedId);
-    setSavedId(selectedId);
+    addPackageToCart(
+      {
+        packageId: target.id,
+        tshirtId: target.tshirt.id,
+        toteId: target.tote.id,
+      },
+      {
+        onSuccess: () => {
+          setCartSuccess(true);
+          setTimeout(() => setCartSuccess(false), 3500);
+        },
+        onError: () => {
+          alert("Не вдалося додати сет у кошик. Спробуйте ще раз.");
+        },
+      },
+    );
   };
 
   return (
@@ -48,75 +102,154 @@ function SurveyRewardPage() {
       <section className="survey-hero">
         <div className="survey-hero-copy">
           <div className="survey-badge">БОНУС ЗА ВАЙБ</div>
-          <h1 className="survey-title">Обери свій сет</h1>
+          <h1 className="survey-title">
+            {isConfirmed ? "Твій закріплений сет" : "Обери свій сет зі знижкою"}
+          </h1>
           <p className="survey-subtitle">
-            2 футболки × 3 шопери = 6 сетів. Один із них — зі знижкою{" "}
-            {SURVEY_DISCOUNT_PERCENT}%.
+            {isConfirmed
+              ? `Цей сет уже закріплено за твоїм акаунтом зі знижкою ${SURVEY_DISCOUNT_PERCENT}%. Зміна недоступна.`
+              : `Обери один із 6 сетів зі знижкою ${SURVEY_DISCOUNT_PERCENT}% та закріпи його за своїм профілем!`}
           </p>
         </div>
       </section>
 
-      {savedPackage && (
-        <p className="survey-package-saved">
-          Зараз обрано: {savedPackage.tshirt.name} + {savedPackage.tote.name}
-        </p>
+      {currentlyActivePackage && (
+        <div className="survey-package-highlight">
+          <span className="survey-package-highlight-tag">
+            {isConfirmed
+              ? "🔒 ЗАКРІПЛЕНИЙ СЕТ"
+              : selectedId === assignedPackageId
+              ? "🎲 ТВІЙ ПРИЗНАЧЕНИЙ ОБРАЗ"
+              : "✨ ТВІЙ ПОТОЧНИЙ ВИБІР"}
+          </span>
+          <p className="survey-package-saved">
+            {currentlyActivePackage.tshirt.name} ({currentlyActivePackage.tshirt.color}) +{" "}
+            {currentlyActivePackage.tote.name} ({currentlyActivePackage.tote.color})
+          </p>
+        </div>
       )}
 
-      <section className="survey-packages">
-        {SURVEY_PACKAGES.map((pack) => {
-          const selected = selectedId === pack.id;
-          return (
-            <button
-              key={pack.id}
-              type="button"
-              className={`survey-package-card${selected ? " is-selected" : ""}`}
-              onClick={() => setSelectedId(pack.id)}
-              aria-pressed={selected}
-            >
-              <span className="survey-package-discount">
-                −{pack.discountPercent}%
-              </span>
-              <div className="survey-package-mocks">
-                <div className={`survey-mock survey-mock-tee survey-mock--${pack.tshirt.id}`}>
-                  <span>Tee</span>
+      {packagesLoading && packagesList.length === 0 ? (
+        <p className="survey-subtitle" style={{ textAlign: "center", padding: "40px 0" }}>
+          Завантаження доступних сетів...
+        </p>
+      ) : (
+        <section className="survey-packages">
+          {packagesList.map((pack) => {
+            const isAssigned = pack.id === assignedPackageId;
+            const isCardSelected = selectedId === pack.id || (!selectedId && isAssigned);
+
+            const teePhoto =
+              clothingPhotoSrc(pack.tshirt) || pack.tshirt?.photo;
+            const totePhoto =
+              clothingPhotoSrc(pack.tote) || pack.tote?.photo;
+
+            return (
+              <div
+                key={pack.id}
+                className={`survey-package-card${isCardSelected ? " is-selected" : ""}${
+                  isAssigned ? " is-assigned" : ""
+                }${isConfirmed && !isAssigned ? " is-disabled" : ""}`}
+                onClick={() => {
+                  if (!isConfirmed) {
+                    setSelectedId(pack.id);
+                  }
+                }}
+              >
+                <span className="survey-package-discount">
+                  −{pack.discountPercent || SURVEY_DISCOUNT_PERCENT}%
+                </span>
+
+                {isAssigned && (
+                  <span className="survey-package-assigned-badge">
+                    {isConfirmed ? "ЗАКРІПЛЕНО" : "ТВІЙ СЕТ"}
+                  </span>
+                )}
+
+                <div className="survey-package-mocks">
+                  <div
+                    className={`survey-mock survey-mock-tee survey-mock--${pack.tshirt.id}`}
+                    style={
+                      teePhoto
+                        ? {
+                            backgroundImage: `url(${teePhoto})`,
+                            backgroundSize: "contain",
+                            backgroundPosition: "center",
+                            backgroundRepeat: "no-repeat",
+                          }
+                        : undefined
+                    }
+                  >
+                    {!teePhoto && <span>Tee</span>}
+                  </div>
+                  <div
+                    className={`survey-mock survey-mock-tote survey-mock--${pack.tote.id}`}
+                    style={
+                      totePhoto
+                        ? {
+                            backgroundImage: `url(${totePhoto})`,
+                            backgroundSize: "contain",
+                            backgroundPosition: "center",
+                            backgroundRepeat: "no-repeat",
+                          }
+                        : undefined
+                    }
+                  >
+                    {!totePhoto && <span>Tote</span>}
+                  </div>
                 </div>
-                <div className={`survey-mock survey-mock-tote survey-mock--${pack.tote.id}`}>
-                  <span>Tote</span>
-                </div>
+
+                <h2 className="survey-package-title">
+                  {pack.tshirt.name} + {pack.tote.name}
+                </h2>
+                <p className="survey-package-meta">
+                  {pack.tshirt.color} · {pack.tote.color}
+                </p>
+                <p className="survey-package-price">
+                  <span className="survey-package-price-old">
+                    {pack.price} грн
+                  </span>
+                  <span>{pack.discountedPrice} грн</span>
+                </p>
               </div>
-              <h2 className="survey-package-title">
-                {pack.tshirt.name} + {pack.tote.name}
-              </h2>
-              <p className="survey-package-meta">
-                {pack.tshirt.color} · {pack.tote.color}
-              </p>
-              <p className="survey-package-price">
-                <span className="survey-package-price-old">{pack.price} грн</span>
-                <span>{pack.discountedPrice} грн</span>
-              </p>
-            </button>
-          );
-        })}
-      </section>
+            );
+          })}
+        </section>
+      )}
 
       <div className="survey-actions">
         <button
           type="button"
-          className="profile-secondary-outline-btn"
-          onClick={() => navigate("/me")}
+          className="survey-btn-catalog"
+          onClick={() => navigate("/")}
         >
-          ПІЗНІШЕ
+          ПЕРЕЙТИ В КАТАЛОГ
         </button>
-        <button
-          type="button"
-          className="profile-action-btn survey-submit"
-          onClick={handleConfirm}
-          disabled={!selectedId}
-        >
-          {savedId && savedId === selectedId
-            ? "СЕТ ЗБЕРЕЖЕНО"
-            : `ЗАБРАТИ −${SURVEY_DISCOUNT_PERCENT}%`}
-        </button>
+
+        {currentlyActivePackage && (
+          <button
+            type="button"
+            className="survey-btn-cart"
+            onClick={() => handleAddToCart(currentlyActivePackage)}
+            disabled={isAddingToCart}
+          >
+            {isAddingToCart
+              ? "ДОДАВАННЯ..."
+              : cartSuccess
+              ? "ДОДАНО В КОШИК! 🎉"
+              : `ДОДАТИ СЕТ У КОШИК 🛍️`}
+          </button>
+        )}
+
+        {cartSuccess && (
+          <button
+            type="button"
+            className="survey-btn-confirm"
+            onClick={() => navigate("/cart")}
+          >
+            ПЕРЕЙТИ В КОШИК →
+          </button>
+        )}
       </div>
     </main>
   );

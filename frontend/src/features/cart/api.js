@@ -19,3 +19,12 @@ export const applyPromoCode = async (promo) => {
   const res = await api.post("/promo/apply", { promo });
   return res.data;
 };
+
+export const addPackageToCart = async ({ packageId, tshirtId, toteId } = {}) => {
+  const res = await api.post("/cart/package", {
+    package_id: packageId,
+    tshirt_id: tshirtId,
+    tote_id: toteId,
+  });
+  return res.data;
+};

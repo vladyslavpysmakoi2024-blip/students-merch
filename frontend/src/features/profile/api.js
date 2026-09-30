@@ -20,6 +20,16 @@ export const getOrders = async () => {
   return res.data;
 };
 
+export const getOrderDetail = async (orderId) => {
+  const res = await api.get(`/orders/${orderId}`);
+  return res.data;
+};
+
+export const getOrderReceipt = async (orderId) => {
+  const res = await api.get(`/orders/${orderId}/receipt`);
+  return res.data;
+};
+
 export const addToCart = async ({ clothingId }) => {
   const res = await api.post("/cart", {
     id_clothing: clothingId,

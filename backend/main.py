@@ -1,7 +1,6 @@
 import os
 import sys
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 import truststore
 import uvicorn
@@ -9,8 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-import app as _models_registry  # noqa
-from app.core.config import DEBUG
+from app.core.config import FRONTEND_URL, CORS_ORIGINS, DEBUG
 from app.db.database import Base, engine
 from app.features.admin.router import router as admin_router
 from app.features.auth.router import router as auth_router
@@ -24,15 +22,24 @@ from app.features.user.router import router as user_router
 
 truststore.inject_into_ssl()
 
-env_file = Path(__file__).parent / ".env"
-if not env_file.exists():
-    env_file = Path(__file__).parent.parent / ".env"
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        try:
+            from sqlalchemy import text
+
+            migrations = [
+                'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS completed_survey BOOLEAN NOT NULL DEFAULT FALSE;',
+                "ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS assigned_package_id TEXT;",
+                "ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS is_package_confirmed BOOLEAN NOT NULL DEFAULT FALSE;",
+                "INSERT INTO enum_status (data) SELECT v FROM (VALUES ('CREATED'), ('FAILED'), ('COMPLETED'), ('PROCESSING'), ('PAID')) AS t(v) WHERE NOT EXISTS (SELECT 1 FROM enum_status WHERE data = t.v);",
+            ]
+            for stmt in migrations:
+                await conn.execute(text(stmt))
+        except Exception as e:
+            print(f"Startup migration notice: {e}", flush=True)
     yield
 
 
@@ -41,21 +48,22 @@ app = FastAPI(title="Students Merch Shop API", lifespan=lifespan)
 # noinspection PyTypeChecker
 app.add_middleware(
     SessionMiddleware,
-    secret_key=os.getenv("SESSION_SECRET_KEY", "your-fallback-secret-key-12345"),
+    secret_key=os.getenv("SESSION_SECRET_KEY",
+                         "your-fallback-secret-key-12345"),
 )
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-
-cors_origins_env = os.getenv("CORS_ORIGINS")
-origins = (
-    [orig.strip() for orig in cors_origins_env.split(",") if orig.strip()]
-    if cors_origins_env
-    else [
+origins = [orig.strip() for orig in CORS_ORIGINS.split(",") if orig.strip()]
+if FRONTEND_URL:
+    clean_front = FRONTEND_URL.rstrip("/")
+    if clean_front not in origins:
+        origins.append(clean_front)
+if not origins:
+    origins = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        FRONTEND_URL,  # Додали сюди, щоб точно не пропустити
+        "https://students-merch-beta.vercel.app",
     ]
-)
+
 # noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
@@ -88,6 +96,7 @@ if DEBUG:
         response = await call_next(request)
         process_time = time.perf_counter() - start_time
         response.headers["X-Process-Time"] = f"{process_time:.4f} sec"
-        print(f"⏱ Час виконання {request.method} {request.url.path}: {process_time:.4f} секунд")
+        print(
+            f"⏱ Час виконання {request.method} {request.url.path}: {process_time:.4f} секунд")
 
         return response

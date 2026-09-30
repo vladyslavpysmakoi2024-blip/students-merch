@@ -11,12 +11,27 @@ async def get_survey_by_user(db: AsyncSession, user_id: int) -> SurveyResponse |
     return result.scalars().first()
 
 
-async def create_survey(db: AsyncSession, user: User, answers: list[dict]) -> SurveyResponse:
-    survey = SurveyResponse(id_user=user.id, answers=answers)
+async def create_survey(
+    db: AsyncSession, user: User, answers: list[dict], assigned_package_id: str | None = None
+) -> SurveyResponse:
+    survey = SurveyResponse(
+        id_user=user.id,
+        answers=answers,
+        assigned_package_id=assigned_package_id,
+        is_package_confirmed=False,
+    )
     db.add(survey)
     user.completed_survey = True
     db.add(user)
     await db.commit()
     await db.refresh(survey)
     await db.refresh(user)
+    return survey
+
+
+async def confirm_package(db: AsyncSession, survey: SurveyResponse) -> SurveyResponse:
+    survey.is_package_confirmed = True
+    db.add(survey)
+    await db.commit()
+    await db.refresh(survey)
     return survey

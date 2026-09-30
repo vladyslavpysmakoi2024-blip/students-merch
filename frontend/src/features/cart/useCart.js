@@ -4,6 +4,7 @@ import {
   updateCartItemQuantity,
   removeCartItem,
   applyPromoCode,
+  addPackageToCart,
 } from "./api";
 
 // Той самий ключ, що й profileKeys.cart у features/profile/useProfile.js,
@@ -46,5 +47,16 @@ export const useRemoveCartItem = () => {
 export const useApplyPromoCode = () => {
   return useMutation({
     mutationFn: applyPromoCode,
+  });
+};
+
+export const useAddPackageToCart = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: addPackageToCart,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: cartKeys.all });
+    },
   });
 };

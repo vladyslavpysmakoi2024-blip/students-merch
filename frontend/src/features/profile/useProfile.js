@@ -3,6 +3,8 @@ import {
   addFavorite,
   addToCart,
   getFavorites,
+  getOrderDetail,
+  getOrderReceipt,
   getOrders,
   removeFavorite,
 } from "./api";
@@ -53,6 +55,26 @@ export const useOrders = () => {
   });
 
   return { orders: data, isLoading, isError };
+};
+
+export const useOrderDetail = (orderId, enabled = false) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["order_detail", orderId],
+    queryFn: () => getOrderDetail(orderId),
+    enabled: Boolean(enabled && orderId),
+  });
+
+  return { order: data, isLoading, isError };
+};
+
+export const useOrderReceipt = (orderId, enabled = false) => {
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["order_receipt", orderId],
+    queryFn: () => getOrderReceipt(orderId),
+    enabled: Boolean(enabled && orderId),
+  });
+
+  return { receipt: data, isLoading, isError, error };
 };
 
 export const useAddToCart = () => {
