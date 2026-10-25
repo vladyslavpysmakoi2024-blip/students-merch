@@ -1,7 +1,9 @@
 export interface SurveyMerchPiece {
-  id: string;
+  id: string | number;
   name: string;
   color: string;
+  photo?: string | null;
+  photos?: string[] | null;
 }
 
 export interface SurveyPackage {
