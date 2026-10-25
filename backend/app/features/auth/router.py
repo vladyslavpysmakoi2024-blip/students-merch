@@ -26,11 +26,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 def _cookie_params(request: Request) -> tuple[str, bool]:
-    is_https = (
-        COOKIE_SECURE
-        or request.url.scheme == "https"
-        or request.headers.get("x-forwarded-proto") == "https"
-    )
+    is_https = COOKIE_SECURE or request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
     samesite_policy = "none" if is_https else (COOKIE_SAMESITE or "lax")
     return samesite_policy, is_https
 

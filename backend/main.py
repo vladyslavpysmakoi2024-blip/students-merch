@@ -27,10 +27,7 @@ truststore.inject_into_ssl()
 STARTUP_MIGRATIONS = [
     'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS completed_survey BOOLEAN NOT NULL DEFAULT FALSE;',
     "ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS assigned_package_id TEXT;",
-    (
-        "ALTER TABLE survey_response "
-        "ADD COLUMN IF NOT EXISTS is_package_confirmed BOOLEAN NOT NULL DEFAULT FALSE;"
-    ),
+    ("ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS is_package_confirmed BOOLEAN NOT NULL DEFAULT FALSE;"),
     (
         "INSERT INTO enum_status (data) "
         "SELECT v FROM (VALUES ('CREATED'), ('FAILED'), ('COMPLETED'), ('PROCESSING'), ('PAID')) AS t(v) "
