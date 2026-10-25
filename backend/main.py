@@ -53,13 +53,18 @@ origins = (
     else [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        FRONTEND_URL,  # Додали сюди, щоб точно не пропустити
+        FRONTEND_URL,
     ]
+)
+LOCAL_ORIGIN_REGEX = (
+    r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+"
+    r"|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$"
 )
 # noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=LOCAL_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -88,6 +93,4 @@ if DEBUG:
         response = await call_next(request)
         process_time = time.perf_counter() - start_time
         response.headers["X-Process-Time"] = f"{process_time:.4f} sec"
-        print(f"⏱ Час виконання {request.method} {request.url.path}: {process_time:.4f} секунд")
-
         return response

@@ -23,6 +23,10 @@ from app.features.user.schemas import UserAndMessageResponse, UserCreate, UserLo
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
+def _is_secure_request(request: Request) -> bool:
+    return request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+
+
 @router.post("/register", response_model=UserAndMessageResponse)
 async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     existing_user = await crud_user.get_user_by_email(db, email=user_data.email)
@@ -34,7 +38,12 @@ async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db
 
 
 @router.post("/login", response_model=MessageResponse)
-async def login(payload: UserLogin, response: Response, db: AsyncSession = Depends(get_db)):
+async def login(
+    payload: UserLogin,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
     user = await crud_user.get_user_by_email(db, email=payload.email)
     if not user or not user.password or not verify_password(payload.password, user.password):
         raise HTTPException(
@@ -45,47 +54,61 @@ async def login(payload: UserLogin, response: Response, db: AsyncSession = Depen
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
+    is_https = _is_secure_request(request)
+    samesite_policy = "none" if is_https else "lax"
+
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
-        samesite="none",  # 👈 Дозволяє передачу куків між різними доменами
-        secure=True,
+        samesite=samesite_policy,
+        secure=is_https,
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
         max_age=7 * 24 * 60 * 60,
-        samesite="none",  # 👈 Дозволяє передачу куків між різними доменами
-        secure=True,
+        samesite=samesite_policy,
+        secure=is_https,
     )
 
     return {"message": "Successful login"}
 
 
+@router.post("/logout")
 @router.post("/auth/logout")
-async def logout(response: Response, access_token: str | None = Cookie(default=None)):
-    # Видаляємо access_token
+async def logout(
+    request: Request,
+    response: Response,
+    access_token: str | None = Cookie(default=None),
+):
     if access_token:
         await invalidate_token_cache(access_token)
 
+    is_https = _is_secure_request(request)
+    samesite_policy = "none" if is_https else "lax"
+
     response.delete_cookie(
         key="access_token",
-        samesite="none",  # 👈 Ці два параметри критично важливі для видалення
-        secure=True,  # 👈
+        samesite=samesite_policy,
+        secure=is_https,
         httponly=True,
     )
-
-    # Видаляємо refresh_token (якщо використовуєте)
-    response.delete_cookie(key="refresh_token", samesite="none", secure=True, httponly=True)
+    response.delete_cookie(
+        key="refresh_token",
+        samesite=samesite_policy,
+        secure=is_https,
+        httponly=True,
+    )
 
     return {"message": "Успішний вихід"}
 
 
 @router.post("/refresh", response_model=MessageResponse)
 async def refresh_access_token(
+    request: Request,
     response: Response,
     refresh_token: str | None = Cookie(default=None),
     db: AsyncSession = Depends(get_db),
@@ -93,7 +116,6 @@ async def refresh_access_token(
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token missing")
 
-    # 1. Декодуємо токен
     try:
         payload = jwt.decode(refresh_token, JWT_SECRET_KEY, algorithms=["HS256"])
         user_id_str: str = payload.get("sub")
@@ -107,28 +129,25 @@ async def refresh_access_token(
             detail="Invalid or expired refresh token",
         ) from exc
 
-    # 2. Перевіряємо, чи користувач досі існує в базі даних (використовуємо CRUD)
     user = await crud_user.get_user(db, user_id=user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists")
 
-    # 3. Генеруємо новий access токен
     new_access_token = create_access_token(data={"sub": str(user.id)})
+    is_https = _is_secure_request(request)
 
-    # 4. Оновлюємо куку
     response.set_cookie(
         key="access_token",
         value=new_access_token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
-        samesite="lax",
-        secure=False,  # Змініть на True у продакшені (HTTPS)
+        samesite="none" if is_https else "lax",
+        secure=is_https,
     )
 
     return {"message": "Token refreshed"}
 
 
-# Налаштування OAuth
 oauth = OAuth()
 oauth.register(
     name="google",
@@ -141,7 +160,6 @@ oauth.register(
 
 @router.get("/login/google")
 async def login_google(request: Request):
-    # 'auth_callback' — це ім'я функції нижче
     redirect_uri = request.url_for("auth_callback")
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
@@ -167,38 +185,33 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
     first_name = user_info.get("given_name")
     last_name = user_info.get("family_name")
 
-    # 1. Перевіряємо, чи є користувач через CRUD
     user = await crud_user.get_user_by_email(db, email=email)
-
-    # 2. Якщо немає - реєструємо через CRUD
     if not user:
         user_data = UserGoogleCreate(email=email, first_name=first_name, last_name=last_name)
         user = await crud_auth.create_user_google(db=db, user_in=user_data)
 
-    # 3. Генеруємо токени
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
-    # 4. Створюємо відповідь-редірект на фронтенд
     response = RedirectResponse(url=f"{FRONTEND_URL}/me")
+    is_https = _is_secure_request(request)
+    samesite_policy = "none" if is_https else "lax"
 
-    # 5. Встановлюємо кукі
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
-        samesite="lax",
-        secure=False,
+        samesite=samesite_policy,
+        secure=is_https,
     )
-
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
         max_age=7 * 24 * 60 * 60,
-        samesite="lax",
-        secure=False,
+        samesite=samesite_policy,
+        secure=is_https,
     )
 
     return response
