@@ -45,11 +45,11 @@ is_production = (
     or os.getenv("VERCEL") is not None
 )
 
-_default_cookie_secure = "true" if is_production else "false"
-COOKIE_SECURE = _env_flag("COOKIE_SECURE", _default_cookie_secure)
+DEFAULT_COOKIE_SECURE = "true" if is_production else "false"
+COOKIE_SECURE = _env_flag("COOKIE_SECURE", DEFAULT_COOKIE_SECURE)
 
-_default_cookie_samesite = "none" if (COOKIE_SECURE or is_production) else "lax"
-COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", _default_cookie_samesite).strip().lower()
+DEFAULT_COOKIE_SAMESITE = "none" if (COOKIE_SECURE or is_production) else "lax"
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", DEFAULT_COOKIE_SAMESITE).strip().lower()
 
 REDIS_TIMEOUT = float(os.getenv("REDIS_TIMEOUT", "1"))
 CACHE_ENABLED = _env_flag("CACHE_ENABLED", "true")

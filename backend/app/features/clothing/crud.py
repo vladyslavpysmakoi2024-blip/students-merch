@@ -9,7 +9,7 @@ def one_per_variant(items):
     seen = set()
     unique_items = []
     for item in items:
-        key = (item.type, item.name, item.color)
+        key = (item.type, item.name, item.color.casefold() if item.color is not None else None)
         if key not in seen:
             seen.add(key)
             unique_items.append(item)
@@ -82,6 +82,6 @@ async def get_clothing_by_name(db: AsyncSession, clname: str):
 
 
 async def get_clothing_by_name_and_color(db: AsyncSession, clname: str, clcolor: str):
-    query = select(Clothing).where(Clothing.name == clname, Clothing.color == clcolor)
+    query = select(Clothing).where(Clothing.name == clname, func.lower(Clothing.color) == clcolor.lower())
     result = await db.execute(query)
     return result.scalars().all()

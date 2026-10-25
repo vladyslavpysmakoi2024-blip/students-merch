@@ -9,11 +9,15 @@ from app.features.order.schemas import OrderDetailSchema
 from app.features.promo.schemas import PromoResponse
 
 PhotoList = Annotated[list[str], AfterValidator(lambda photos: [photo for photo in photos if photo])]
+ShopperType = Annotated[
+    str | None,
+    AfterValidator(lambda value: "Шопери" if value in ("Шоппери", "шоппери") else value),
+]
 
 
 class ClothingCreate(BaseModel):
     name: str | None = None
-    type: str | None = None
+    type: ShopperType = None
     color: HexColor | None = None
     size: str | None = None
     composition: str | None = None
@@ -34,7 +38,7 @@ class ClothingIds(BaseModel):
 
 class ClothingBulkUpdate(ClothingIds):
     name: str | None = None
-    type: str | None = None
+    type: ShopperType = None
     color: HexColor | None = None
     composition: str | None = None
     price: Decimal | None = Field(default=None, gt=0, max_digits=10, decimal_places=2, examples=["0.00"])

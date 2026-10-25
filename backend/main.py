@@ -6,6 +6,8 @@ import truststore
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import CORS_ORIGINS, DEBUG, FRONTEND_URL
@@ -22,22 +24,27 @@ from app.features.user.router import router as user_router
 
 truststore.inject_into_ssl()
 
+STARTUP_MIGRATIONS = [
+    'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS completed_survey BOOLEAN NOT NULL DEFAULT FALSE;',
+    "ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS assigned_package_id TEXT;",
+    (
+        "ALTER TABLE survey_response "
+        "ADD COLUMN IF NOT EXISTS is_package_confirmed BOOLEAN NOT NULL DEFAULT FALSE;"
+    ),
+    (
+        "INSERT INTO enum_status (data) "
+        "SELECT v FROM (VALUES ('CREATED'), ('FAILED'), ('COMPLETED'), ('PROCESSING'), ('PAID')) AS t(v) "
+        "WHERE NOT EXISTS (SELECT 1 FROM enum_status WHERE data = t.v);"
+    ),
+]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         try:
-            from sqlalchemy import text
-            from sqlalchemy.exc import SQLAlchemyError
-
-            migrations = [
-                'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS completed_survey BOOLEAN NOT NULL DEFAULT FALSE;',
-                "ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS assigned_package_id TEXT;",
-                "ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS is_package_confirmed BOOLEAN NOT NULL DEFAULT FALSE;",
-                "INSERT INTO enum_status (data) SELECT v FROM (VALUES ('CREATED'), ('FAILED'), ('COMPLETED'), ('PROCESSING'), ('PAID')) AS t(v) WHERE NOT EXISTS (SELECT 1 FROM enum_status WHERE data = t.v);",
-            ]
-            for stmt in migrations:
+            for stmt in STARTUP_MIGRATIONS:
                 await conn.execute(text(stmt))
         except SQLAlchemyError as e:
             print(f"Startup migration notice: {e}", flush=True)
@@ -67,10 +74,15 @@ for default_origin in [
     if default_origin not in origins:
         origins.append(default_origin)
 
+LOCAL_ORIGIN_REGEX = (
+    r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+"
+    r"|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$"
+)
 # noinspection PyTypeChecker
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=LOCAL_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -99,6 +111,4 @@ if DEBUG:
         response = await call_next(request)
         process_time = time.perf_counter() - start_time
         response.headers["X-Process-Time"] = f"{process_time:.4f} sec"
-        print(f"⏱ Час виконання {request.method} {request.url.path}: {process_time:.4f} секунд")
-
         return response

@@ -26,6 +26,7 @@ disable = [
     "C0116", # missing-function-docstring
     "R0903", # too-few-public-methods (нормально для Pydantic та SQLAlchemy)
     "R0913", # too-many-arguments (нормально для FastAPI ендпоінтів)
+    "R0914", # too-many-locals
     "R0917", # too-many-positional-arguments
     "W0621", # redefined-outer-name (Часто буває через фікстури та Depends)
     "W0613", # unused-argument (Часто буває у FastAPI middleware/lifespan)

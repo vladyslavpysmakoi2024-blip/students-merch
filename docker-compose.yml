@@ -50,13 +50,26 @@ services:
         condition: service_started
 
   redis:
-    image: redis:alpine
+    image: docker.io/library/redis:alpine
     container_name: local-redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: merch-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

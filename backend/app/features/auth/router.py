@@ -25,6 +25,16 @@ from app.features.user.schemas import UserAndMessageResponse, UserCreate, UserLo
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
+def _cookie_params(request: Request) -> tuple[str, bool]:
+    is_https = (
+        COOKIE_SECURE
+        or request.url.scheme == "https"
+        or request.headers.get("x-forwarded-proto") == "https"
+    )
+    samesite_policy = "none" if is_https else (COOKIE_SAMESITE or "lax")
+    return samesite_policy, is_https
+
+
 @router.post("/register", response_model=UserAndMessageResponse)
 async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     existing_user = await crud_user.get_user_by_email(db, email=user_data.email)
@@ -36,7 +46,12 @@ async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db
 
 
 @router.post("/login", response_model=MessageResponse)
-async def login(payload: UserLogin, response: Response, db: AsyncSession = Depends(get_db)):
+async def login(
+    payload: UserLogin,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
     user = await crud_user.get_user_by_email(db, email=payload.email)
     if not user or not user.password or not verify_password(payload.password, user.password):
         raise HTTPException(
@@ -47,44 +62,50 @@ async def login(payload: UserLogin, response: Response, db: AsyncSession = Depen
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
+    samesite_policy, is_https = _cookie_params(request)
+
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
-        samesite=COOKIE_SAMESITE,
-        secure=COOKIE_SECURE,
+        samesite=samesite_policy,
+        secure=is_https,
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
         max_age=7 * 24 * 60 * 60,
-        samesite=COOKIE_SAMESITE,
-        secure=COOKIE_SECURE,
+        samesite=samesite_policy,
+        secure=is_https,
     )
 
     return {"message": "Successful login"}
 
 
 @router.post("/logout")
-async def logout(response: Response, access_token: str | None = Cookie(default=None)):
-    # Видаляємо access_token з Redis-кешу
+@router.post("/auth/logout")
+async def logout(
+    request: Request,
+    response: Response,
+    access_token: str | None = Cookie(default=None),
+):
     if access_token:
         await invalidate_token_cache(access_token)
 
+    samesite_policy, is_https = _cookie_params(request)
+
     response.delete_cookie(
         key="access_token",
-        samesite=COOKIE_SAMESITE,
-        secure=COOKIE_SECURE,
+        samesite=samesite_policy,
+        secure=is_https,
         httponly=True,
     )
-
-    # Видаляємо refresh_token
     response.delete_cookie(
         key="refresh_token",
-        samesite=COOKIE_SAMESITE,
-        secure=COOKIE_SECURE,
+        samesite=samesite_policy,
+        secure=is_https,
         httponly=True,
     )
 
@@ -93,6 +114,7 @@ async def logout(response: Response, access_token: str | None = Cookie(default=N
 
 @router.post("/refresh", response_model=MessageResponse)
 async def refresh_access_token(
+    request: Request,
     response: Response,
     refresh_token: str | None = Cookie(default=None),
     db: AsyncSession = Depends(get_db),
@@ -100,7 +122,6 @@ async def refresh_access_token(
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token missing")
 
-    # 1. Декодуємо токен
     try:
         payload = jwt.decode(refresh_token, JWT_SECRET_KEY, algorithms=["HS256"])
         user_id_str: str = payload.get("sub")
@@ -114,28 +135,25 @@ async def refresh_access_token(
             detail="Invalid or expired refresh token",
         ) from exc
 
-    # 2. Перевіряємо, чи користувач досі існує в базі даних (використовуємо CRUD)
     user = await crud_user.get_user(db, user_id=user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists")
 
-    # 3. Генеруємо новий access токен
     new_access_token = create_access_token(data={"sub": str(user.id)})
+    samesite_policy, is_https = _cookie_params(request)
 
-    # 4. Оновлюємо куку
     response.set_cookie(
         key="access_token",
         value=new_access_token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
-        samesite=COOKIE_SAMESITE,
-        secure=COOKIE_SECURE,
+        samesite=samesite_policy,
+        secure=is_https,
     )
 
     return {"message": "Token refreshed"}
 
 
-# Налаштування OAuth
 oauth = OAuth()
 oauth.register(
     name="google",
@@ -148,7 +166,6 @@ oauth.register(
 
 @router.get("/login/google")
 async def login_google(request: Request):
-    # 'auth_callback' — це ім'я функції нижче
     redirect_uri = request.url_for("auth_callback")
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
@@ -171,42 +188,34 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
         )
 
     email = user_info.get("email")
-    first_name = user_info.get("given_name")
-    last_name = user_info.get("family_name")
-
-    # 1. Перевіряємо, чи є користувач через CRUD
     user = await crud_user.get_user_by_email(db, email=email)
-
-    # 2. Якщо немає - реєструємо через CRUD
     if not user:
-        user_data = UserGoogleCreate(email=email, first_name=first_name, last_name=last_name)
+        user_data = UserGoogleCreate(
+            email=email,
+            first_name=user_info.get("given_name"),
+            last_name=user_info.get("family_name"),
+        )
         user = await crud_auth.create_user_google(db=db, user_in=user_data)
 
-    # 3. Генеруємо токени
-    access_token = create_access_token(data={"sub": str(user.id)})
-    refresh_token = create_refresh_token(data={"sub": str(user.id)})
-
-    # 4. Створюємо відповідь-редірект на фронтенд
     frontend_base = (FRONTEND_URL or "http://localhost:3000").rstrip("/")
     response = RedirectResponse(url=f"{frontend_base}/me")
+    samesite_policy, is_https = _cookie_params(request)
 
-    # 5. Встановлюємо кукі
     response.set_cookie(
         key="access_token",
-        value=access_token,
+        value=create_access_token(data={"sub": str(user.id)}),
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_IN_MINUTES * 60,
-        samesite=COOKIE_SAMESITE,
-        secure=COOKIE_SECURE,
+        samesite=samesite_policy,
+        secure=is_https,
     )
-
     response.set_cookie(
         key="refresh_token",
-        value=refresh_token,
+        value=create_refresh_token(data={"sub": str(user.id)}),
         httponly=True,
         max_age=7 * 24 * 60 * 60,
-        samesite=COOKIE_SAMESITE,
-        secure=COOKIE_SECURE,
+        samesite=samesite_policy,
+        secure=is_https,
     )
 
     return response

@@ -2,12 +2,12 @@ from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
-from app.core.config import DATABASE_URL
+from app.core.config import DATABASE_URL, DEBUG
 
 engine = create_async_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    echo=True,
+    echo=DEBUG,
 )
 
 # pylint: disable=invalid-name

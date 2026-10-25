@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.cart.crud as crud_cart
+import app.features.clothing.crud as crud_clothing
+import app.features.survey.crud as crud_survey
 from app.api.dependencies import get_current_user, get_db
 from app.core.colors import color_name
 from app.core.schemas import ResponseStatus
@@ -69,8 +71,6 @@ async def add_package_to_cart(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    import app.features.clothing.crud as crud_clothing
-
     tshirt_id = data.tshirt_id
     tote_id = data.tote_id
 
@@ -114,9 +114,6 @@ async def add_package_to_cart(
         clothing_id=tote.id,
         quantity=1,
     )
-
-    # Lock / confirm the package for the user permanently
-    import app.features.survey.crud as crud_survey
 
     survey = await crud_survey.get_survey_by_user(db, current_user.id)
     if survey and not survey.is_package_confirmed:
