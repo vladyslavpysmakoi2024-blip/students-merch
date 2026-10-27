@@ -13,6 +13,7 @@ from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import inspect
 from sqlalchemy.orm import make_transient_to_detached
+from upstash_redis.asyncio import Redis as UpstashRedis
 from upstash_redis.errors import UpstashError
 
 from app.core.config import CACHE_ENABLED, DEBUG, JWT_SECRET_KEY, REDIS_TIMEOUT, USE_VERCEL_KV
@@ -51,8 +52,6 @@ if not CACHE_ENABLED:
     app_logger.info("CACHE_ENABLED=false — кешування вимкнено, Redis/Docker не потрібен.")
 elif USE_VERCEL_KV and not DEBUG:
     # Production version
-    from upstash_redis.asyncio import Redis as UpstashRedis
-
     redis_client = UpstashRedis(url=os.getenv("KV_REST_API_URL"), token=os.getenv("KV_REST_API_TOKEN"))
     app_logger.debug("Redis type: Vercel KV (Upstash Redis)")
 else:
