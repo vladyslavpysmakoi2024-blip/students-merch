@@ -3,13 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.promo.crud as crud_promo
 from app.api.dependencies import get_current_user, get_db
+from app.core.rate_limit import rate_limit
 from app.features.promo.schemas import PromoApply, PromoResponse
 from app.features.user.models import User
 
 router = APIRouter(prefix="/promo", tags=["Promo"])
 
 
-@router.post("/apply", response_model=PromoResponse)
+@router.post("/apply", response_model=PromoResponse, dependencies=[Depends(rate_limit("promo", 10, 60, per_user=True))])
 async def apply_promo(
     data: PromoApply, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):

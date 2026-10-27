@@ -55,6 +55,15 @@ REDIS_TIMEOUT = float(os.getenv("REDIS_TIMEOUT", "1"))
 CACHE_ENABLED = _env_flag("CACHE_ENABLED", "true")
 USE_VERCEL_KV = bool(os.getenv("KV_REST_API_URL"))
 
+RATE_LIMIT_ENABLED = _env_flag("RATE_LIMIT_ENABLED", "true")
+GLOBAL_RATE_LIMIT = int(os.getenv("GLOBAL_RATE_LIMIT", "300"))  # запитів за хвилину з одного IP
+IP_BAN_STRIKES = int(os.getenv("IP_BAN_STRIKES", "5"))  # стільки вікон з перевищенням ліміту за годину -> бан IP
+IP_BAN_SECONDS = int(os.getenv("IP_BAN_SECONDS", "900"))
+BOT_BLOCK_ENABLED = _env_flag("BOT_BLOCK_ENABLED", "false" if DEBUG else "true")  # локально curl працює
+ON_VERCEL = os.getenv("VERCEL") is not None
+# Довіряємо X-Forwarded-For лише за проксі платформи, інакше клієнт підставить будь-який IP
+TRUST_PROXY_HEADERS = _env_flag("TRUST_PROXY_HEADERS", "true" if ON_VERCEL or os.getenv("RENDER") else "false")
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     if not all([DB_USER, DB_PASSWORD, DB_NAME, DB_HOST]):

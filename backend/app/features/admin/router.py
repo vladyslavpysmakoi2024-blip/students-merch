@@ -9,9 +9,11 @@ from starlette.concurrency import run_in_threadpool
 
 import app.features.admin.crud as crud_admin
 import app.features.clothing.crud as crud_clothing
+import app.features.user.crud as crud_user
 from app.api.dependencies import get_current_admin, get_db
-from app.core.cache import clear_site_cache, clear_user_cache
+from app.core.cache import clear_site_cache_prefix, clear_user_cache, invalidate_user_cache
 from app.core.config import CLOUDINARY_URL
+from app.core.rate_limit import rate_limit
 from app.core.schemas import MessageResponse
 from app.core.utils import require_cloudinary, validate_image_file
 from app.features.admin.schemas import (
@@ -25,6 +27,7 @@ from app.features.admin.schemas import (
 )
 from app.features.clothing.models import Clothing
 from app.features.clothing.schemas import ClothingDetailSchema
+from app.features.user.models import User
 
 router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(get_current_admin)])
 
@@ -55,7 +58,7 @@ async def create_clothes(payload: ClothingBulkCreate, db: AsyncSession = Depends
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error while saving clothing") from exc
 
-    await clear_site_cache("/clothing/simple-list")
+    await clear_site_cache_prefix("/clothing")
     return clothes
 
 
@@ -74,9 +77,7 @@ async def update_clothes(payload: ClothingBulkUpdate, db: AsyncSession = Depends
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error while saving clothing") from exc
 
-    await clear_site_cache("/clothing/simple-list")
-    for clothing_id in ids:
-        await clear_site_cache(f"/clothing/{clothing_id}")
+    await clear_site_cache_prefix("/clothing")
     return clothes
 
 
@@ -103,9 +104,7 @@ async def delete_clothes(payload: ClothingIds, db: AsyncSession = Depends(get_db
             status_code=status.HTTP_409_CONFLICT, detail="Товар щойно додали в замовлення, його не можна видалити"
         ) from exc
 
-    await clear_site_cache("/clothing/simple-list")
-    for clothing_id in ids:
-        await clear_site_cache(f"/clothing/{clothing_id}")
+    await clear_site_cache_prefix("/clothing")
     for user_id in favorite_user_ids:
         await clear_user_cache(func_name="get_favorites", user_id=user_id)
     return {"message": "Clothing deleted"}
@@ -123,12 +122,11 @@ async def update_clothing(clothing_id: int, payload: ClothingCreate, db: AsyncSe
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error while saving clothing") from exc
 
-    await clear_site_cache("/clothing/simple-list")
-    await clear_site_cache(f"/clothing/{clothing_id}")
+    await clear_site_cache_prefix("/clothing")
     return clothing
 
 
-@router.post("/clothing/photo")
+@router.post("/clothing/photo", dependencies=[Depends(rate_limit("upload", 10, 60, per_user=True))])
 async def upload_clothing_photo(file: UploadFile = File(...)):  # noqa
     require_cloudinary(CLOUDINARY_URL)
     content = await validate_image_file(file)
@@ -190,3 +188,29 @@ async def delete_promo(promo_id: int, db: AsyncSession = Depends(get_db)):
 @router.get("/orders", response_model=list[OrderAdminSchema])
 async def get_orders(db: AsyncSession = Depends(get_db)):
     return await crud_admin.get_all_orders(db)
+
+
+async def _set_user_banned(db: AsyncSession, user_id: int, current_admin: User, banned: bool) -> None:
+    user = await crud_user.get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if banned and (user.id == current_admin.id or user.is_admin):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot ban an administrator")
+
+    await crud_user.set_banned(db, user, banned)
+    # Інакше закешований користувач ще до 15 хв проходив би get_current_user
+    await invalidate_user_cache(user_id)
+
+
+@router.post("/users/{user_id}/ban", response_model=MessageResponse)
+async def ban_user(user_id: int, db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)):
+    await _set_user_banned(db, user_id, current_admin, banned=True)
+    return {"message": "User banned"}
+
+
+@router.post("/users/{user_id}/unban", response_model=MessageResponse)
+async def unban_user(
+    user_id: int, db: AsyncSession = Depends(get_db), current_admin: User = Depends(get_current_admin)
+):
+    await _set_user_banned(db, user_id, current_admin, banned=False)
+    return {"message": "User unbanned"}

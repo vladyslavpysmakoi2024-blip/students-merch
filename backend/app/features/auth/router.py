@@ -2,12 +2,13 @@ import jwt
 from authlib.integrations.starlette_client import OAuth, OAuthError
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.auth.crud as crud_auth
 import app.features.user.crud as crud_user
-from app.api.dependencies import get_db
-from app.core.cache import invalidate_token_cache
+from app.api.dependencies import BANNED_DETAIL, get_db
+from app.core.cache import invalidate_user_cache
 from app.core.config import (
     ACCESS_TOKEN_EXPIRE_IN_MINUTES,
     COOKIE_SAMESITE,
@@ -17,6 +18,7 @@ from app.core.config import (
     GOOGLE_CLIENT_SECRET,
     JWT_SECRET_KEY,
 )
+from app.core.rate_limit import client_ip, rate_limit, reserve_login_attempt, reset_login_attempts
 from app.core.schemas import MessageResponse
 from app.core.security import create_access_token, create_refresh_token, verify_password
 from app.features.auth.schemas import UserGoogleCreate
@@ -31,29 +33,43 @@ def _cookie_params(request: Request) -> tuple[str, bool]:
     return samesite_policy, is_https
 
 
-@router.post("/register", response_model=UserAndMessageResponse)
+@router.post(
+    "/register", response_model=UserAndMessageResponse, dependencies=[Depends(rate_limit("register", 20, 600))]
+)
 async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     existing_user = await crud_user.get_user_by_email(db, email=user_data.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exist")
 
-    new_user = await crud_user.create_user(db, user_data)
+    try:
+        new_user = await crud_user.create_user(db, user_data)
+    except IntegrityError as exc:
+        # Два одночасні запити пройшли перевірку вище — унікальний індекс на email відсікає другий
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="User already exist") from exc
     return {"message": "User created successfully", "user": new_user}
 
 
-@router.post("/login", response_model=MessageResponse)
+@router.post("/login", response_model=MessageResponse, dependencies=[Depends(rate_limit("login", 30, 60))])
 async def login(
     payload: UserLogin,
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):
+    # Ліміт на IP м'який (спільний IP кампусу), тож підбір пароля до одного акаунта ріжемо по email
+    ip = client_ip(request)
+    await reserve_login_attempt(payload.email, ip)
+
     user = await crud_user.get_user_by_email(db, email=payload.email)
     if not user or not user.password or not verify_password(payload.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Incorrect email or password",
         )
+    if user.is_banned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=BANNED_DETAIL)
+    await reset_login_attempts(payload.email, ip)
 
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
@@ -88,7 +104,12 @@ async def logout(
     access_token: str | None = Cookie(default=None),
 ):
     if access_token:
-        await invalidate_token_cache(access_token)
+        try:
+            payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=["HS256"])
+        except jwt.PyJWTError:
+            payload = {}
+        if payload.get("sub"):
+            await invalidate_user_cache(payload["sub"])
 
     samesite_policy, is_https = _cookie_params(request)
 
@@ -108,7 +129,7 @@ async def logout(
     return {"message": "Успішний вихід"}
 
 
-@router.post("/refresh", response_model=MessageResponse)
+@router.post("/refresh", response_model=MessageResponse, dependencies=[Depends(rate_limit("refresh", 60, 60))])
 async def refresh_access_token(
     request: Request,
     response: Response,
@@ -134,6 +155,8 @@ async def refresh_access_token(
     user = await crud_user.get_user(db, user_id=user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User no longer exists")
+    if user.is_banned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=BANNED_DETAIL)
 
     new_access_token = create_access_token(data={"sub": str(user.id)})
     samesite_policy, is_https = _cookie_params(request)
@@ -160,13 +183,13 @@ oauth.register(
 )
 
 
-@router.get("/login/google")
+@router.get("/login/google", dependencies=[Depends(rate_limit("oauth", 30, 60))])
 async def login_google(request: Request):
     redirect_uri = request.url_for("auth_callback")
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
-@router.get("/callback", name="auth_callback")
+@router.get("/callback", name="auth_callback", dependencies=[Depends(rate_limit("oauth", 30, 60))])
 async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         token = await oauth.google.authorize_access_token(request)
@@ -192,6 +215,8 @@ async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
             last_name=user_info.get("family_name"),
         )
         user = await crud_auth.create_user_google(db=db, user_in=user_data)
+    elif user.is_banned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=BANNED_DETAIL)
 
     frontend_base = (FRONTEND_URL or "http://localhost:3000").rstrip("/")
     response = RedirectResponse(url=f"{frontend_base}/me")

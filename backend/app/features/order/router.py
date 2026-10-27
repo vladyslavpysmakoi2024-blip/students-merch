@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.order.crud as crud_order
 from app.api.dependencies import get_current_user, get_db
+from app.core.rate_limit import rate_limit
 from app.core.schemas import ResponseStatus
 from app.features.clothing.models import Clothing
 from app.features.order.monobank import create_invoice, get_invoice_status
@@ -62,7 +63,12 @@ async def get_info_for_new_order(current_user: User = Depends(get_current_user))
     return current_user
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=OrderCreateResponse)
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    response_model=OrderCreateResponse,
+    dependencies=[Depends(rate_limit("order", 5, 60, per_user=True))],
+)
 async def create_order(
     payload: OrderCreateSchema,
     current_user: User = Depends(get_current_user),

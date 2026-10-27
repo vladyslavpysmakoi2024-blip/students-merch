@@ -1,12 +1,14 @@
 services:
+  # Local-only DB credentials, fixed on purpose: Postgres applies them only when the volume is first created,
+  # so taking them from DATABASE_* (the Neon creds in backend/.env / shell) broke every run after the first.
   db:
     image: docker.io/library/postgres:16-alpine
     container_name: merch-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DATABASE_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
-      POSTGRES_DB: ${DATABASE_NAME:-merch_shop}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: merch_shop
     ports:
       - "5432:5432"
     volumes:
@@ -15,7 +17,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${DATABASE_USERNAME:-postgres} -d ${DATABASE_NAME:-merch_shop}",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
         ]
       interval: 5s
       timeout: 5s
@@ -30,9 +32,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
-      DATABASE_NAME: ${DATABASE_NAME:-merch_shop}
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_NAME: merch_shop
       DATABASE_HOST: db
       DATABASE_PORT: 5432
       DATABASE_SSL: disable
