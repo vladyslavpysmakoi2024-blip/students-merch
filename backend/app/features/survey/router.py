@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.survey.crud as crud_survey
 from app.api.dependencies import get_current_user, get_db
+from app.core.cache import invalidate_user_cache
 from app.features.survey.schemas import (
     ClaimPackagePayload,
     ClaimPackageResponse,
@@ -118,6 +119,7 @@ async def submit_survey(
     answers = _validate_answers(payload)
     random_package_id = await get_random_package_id_from_db(db)
     survey = await crud_survey.create_survey(db, current_user, answers, assigned_package_id=random_package_id)
+    await invalidate_user_cache(current_user.id)
 
     package_data = await resolve_package_by_id(db, survey.assigned_package_id)
 

@@ -1,13 +1,13 @@
 import cloudinary.exceptions
 import cloudinary.uploader
-from fastapi import APIRouter, Cookie, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
 import app.features.user.crud as crud_user
 from app.api.dependencies import get_current_user, get_db
-from app.core.cache import invalidate_token_cache
+from app.core.cache import invalidate_user_cache
 from app.core.config import CLOUDINARY_URL
 from app.core.schemas import MessageResponse
 from app.core.security import verify_password
@@ -45,6 +45,7 @@ async def update_current_user(
     # 2. Викликаємо ізольовану логіку бази даних
     try:
         updated_user = await crud_user.update_user(db=db, db_user=current_user, user_in=payload)
+        await invalidate_user_cache(current_user.id)
         return {"message": "User updated successfully", "user": updated_user}
     except SQLAlchemyError as exc:
         await db.rollback()
@@ -78,6 +79,7 @@ async def upload_avatar(
         ) from exc
 
     updated_user = await crud_user.update_avatar(db, db_user=current_user, avatar_url=result["secure_url"])
+    await invalidate_user_cache(current_user.id)
     return {"avatar_url": updated_user.avatar_url}
 
 
@@ -98,6 +100,7 @@ async def delete_avatar(db: AsyncSession = Depends(get_db), current_user: User =
         ) from exc
 
     updated_user = await crud_user.update_avatar(db, db_user=current_user, avatar_url=None)
+    await invalidate_user_cache(current_user.id)
     return {"avatar_url": updated_user.avatar_url}
 
 
@@ -106,18 +109,17 @@ async def change_password(
     payload: UserPasswordUpdate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    access_token: str | None = Cookie(default=None),
 ):
-    if not verify_password(payload.current_password, current_user.password):
+    # Закешований current_user не містить password — читаємо свіжий рядок з БД
+    db_user = await crud_user.get_user(db, current_user.id)
+    if not db_user or not db_user.password or not verify_password(payload.current_password, db_user.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The current password is incorrect")
 
     try:
-        await crud_user.update_password(db, db_user=current_user, new_password=payload.new_password)
-        # Прибираємо закешовану версію цієї сесії — наступний запит
-        # перечитає користувача (та зверне увагу на нові дані) замість
-        # 15 хв ще жити зі старим кешованим станом.
-        if access_token:
-            await invalidate_token_cache(access_token)
+        await crud_user.update_password(db, db_user=db_user, new_password=payload.new_password)
+        # Прибираємо закешовану версію користувача — наступний запит
+        # перечитає його з БД замість 15 хв жити зі старим станом.
+        await invalidate_user_cache(current_user.id)
         return {"message": "Password successfully changed"}
     except SQLAlchemyError as exc:
         await db.rollback()

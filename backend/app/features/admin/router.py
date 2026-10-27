@@ -10,7 +10,7 @@ from starlette.concurrency import run_in_threadpool
 import app.features.admin.crud as crud_admin
 import app.features.clothing.crud as crud_clothing
 from app.api.dependencies import get_current_admin, get_db
-from app.core.cache import clear_site_cache, clear_user_cache
+from app.core.cache import clear_site_cache_prefix, clear_user_cache
 from app.core.config import CLOUDINARY_URL
 from app.core.schemas import MessageResponse
 from app.core.utils import require_cloudinary, validate_image_file
@@ -55,7 +55,7 @@ async def create_clothes(payload: ClothingBulkCreate, db: AsyncSession = Depends
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error while saving clothing") from exc
 
-    await clear_site_cache("/clothing/simple-list")
+    await clear_site_cache_prefix("/clothing")
     return clothes
 
 
@@ -74,9 +74,7 @@ async def update_clothes(payload: ClothingBulkUpdate, db: AsyncSession = Depends
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error while saving clothing") from exc
 
-    await clear_site_cache("/clothing/simple-list")
-    for clothing_id in ids:
-        await clear_site_cache(f"/clothing/{clothing_id}")
+    await clear_site_cache_prefix("/clothing")
     return clothes
 
 
@@ -103,9 +101,7 @@ async def delete_clothes(payload: ClothingIds, db: AsyncSession = Depends(get_db
             status_code=status.HTTP_409_CONFLICT, detail="Товар щойно додали в замовлення, його не можна видалити"
         ) from exc
 
-    await clear_site_cache("/clothing/simple-list")
-    for clothing_id in ids:
-        await clear_site_cache(f"/clothing/{clothing_id}")
+    await clear_site_cache_prefix("/clothing")
     for user_id in favorite_user_ids:
         await clear_user_cache(func_name="get_favorites", user_id=user_id)
     return {"message": "Clothing deleted"}
@@ -123,8 +119,7 @@ async def update_clothing(clothing_id: int, payload: ClothingCreate, db: AsyncSe
         await db.rollback()
         raise HTTPException(status_code=500, detail="Error while saving clothing") from exc
 
-    await clear_site_cache("/clothing/simple-list")
-    await clear_site_cache(f"/clothing/{clothing_id}")
+    await clear_site_cache_prefix("/clothing")
     return clothing
 
 

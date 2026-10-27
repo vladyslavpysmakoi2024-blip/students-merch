@@ -1,5 +1,4 @@
 import asyncio
-import hashlib
 import json
 import logging
 import os
@@ -13,6 +12,8 @@ import redis.exceptions
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import inspect
+from sqlalchemy.orm import make_transient_to_detached
+from upstash_redis.errors import UpstashError
 
 from app.core.config import CACHE_ENABLED, DEBUG, JWT_SECRET_KEY, REDIS_TIMEOUT, USE_VERCEL_KV
 from app.core.utils import normalize_query
@@ -74,7 +75,7 @@ async def _safe_redis_get(cache_key: str):
         return await asyncio.wait_for(redis_client.get(cache_key), timeout=REDIS_TIMEOUT)
     except asyncio.TimeoutError:
         app_logger.warning("Redis read timeout (%.1fs) for key %s", REDIS_TIMEOUT, cache_key)
-    except (redis.exceptions.RedisError, httpx.HTTPError) as e:
+    except (redis.exceptions.RedisError, httpx.HTTPError, UpstashError) as e:
         app_logger.warning("Redis read error (%s): %s", type(e).__name__, e)
     except (OSError, ValueError) as e:
         app_logger.warning("Unexpected Redis read error (%s): %s", type(e).__name__, e)
@@ -88,7 +89,7 @@ async def _safe_redis_set(cache_key: str, value: str, ttl: int) -> None:
         await asyncio.wait_for(redis_client.set(cache_key, value, ex=ttl), timeout=REDIS_TIMEOUT)
     except asyncio.TimeoutError:
         app_logger.warning("Redis write timeout (%.1fs) for key %s", REDIS_TIMEOUT, cache_key)
-    except (redis.exceptions.RedisError, httpx.HTTPError) as e:
+    except (redis.exceptions.RedisError, httpx.HTTPError, UpstashError) as e:
         app_logger.warning("Redis write error (%s): %s", type(e).__name__, e)
     except (OSError, ValueError) as e:
         app_logger.warning("Unexpected Redis write error (%s): %s", type(e).__name__, e)
@@ -102,7 +103,7 @@ async def _safe_redis_delete(cache_key: str) -> None:
         app_logger.debug("Cache cleared for %s", cache_key)
     except asyncio.TimeoutError:
         app_logger.warning("Redis delete timeout (%.1fs) for key %s", REDIS_TIMEOUT, cache_key)
-    except (redis.exceptions.RedisError, httpx.HTTPError) as e:
+    except (redis.exceptions.RedisError, httpx.HTTPError, UpstashError) as e:
         app_logger.warning("Redis delete error (%s): %s", type(e).__name__, e)
     except (OSError, ValueError) as e:
         app_logger.warning("Unexpected Redis delete error (%s): %s", type(e).__name__, e)
@@ -217,10 +218,16 @@ def _serialize_user_for_cache(user: User) -> dict:
     }
 
 
+def _user_cache_key(user_id: int | str) -> str:
+    return f"auth:user:{user_id}"
+
+
 def cache_user_token(ttl: int = 900):
     """
     Декоратор зроблений із метою оптимізаії звернень за токеном доступу
     до викликів api/dependencies/get_current_user()
+    Ключ — id користувача (а не токен), щоб invalidate_user_cache
+    скидав кеш для всіх сесій користувача одразу.
     :param ttl: час життя кешу
     :return:
     """
@@ -244,7 +251,7 @@ def cache_user_token(ttl: int = 900):
                 except jwt.PyJWTError:
                     pass
 
-            if not request or not token or not payload or payload.get("type") != "access":
+            if not request or not token or not payload or payload.get("type") != "access" or not payload.get("sub"):
                 return await func(*args, **kwargs)
 
             exp = payload.get("exp", 0)
@@ -253,14 +260,24 @@ def cache_user_token(ttl: int = 900):
                 return await func(*args, **kwargs)
 
             effective_ttl = min(ttl, remaining)
-            cache_key = f"auth:token:{hashlib.sha256(token.encode()).hexdigest()}"
+            cache_key = _user_cache_key(payload["sub"])
 
             cached_user = await _safe_redis_get(cache_key)
             if cached_user:
                 try:
                     user_dict = json.loads(cached_user) if isinstance(cached_user, str) else cached_user
                     app_logger.debug("Cache hit for %s", cache_key)
-                    return User(**user_dict)
+                    user = User(**user_dict)
+                    # User(**...) — transient-об'єкт: db.add() + commit зробив би INSERT
+                    # з існуючим id. Позначаємо його як збережений рядок і прив'язуємо
+                    # до сесії без SELECT, щоб зміни йшли через UPDATE.
+                    # Не закешовані поля (password) стають expired — їх треба
+                    # перечитувати з БД явно.
+                    db = kwargs.get("db")
+                    if db is not None:
+                        make_transient_to_detached(user)
+                        user = await db.merge(user, load=False)
+                    return user
                 except (TypeError, json.JSONDecodeError) as e:
                     app_logger.warning("Corrupted cache value for %s (%s): %s", cache_key, type(e).__name__, e)
 
@@ -286,16 +303,38 @@ async def clear_user_cache(func_name: str, user_id: int):
     await _safe_redis_delete(cache_key)
 
 
-async def clear_site_cache(path: str) -> None:
-    await _safe_redis_delete(f"cache:{path}")
+async def clear_site_cache_prefix(prefix: str) -> None:
+    """
+    Видаляє всі закешовані відповіді, шлях яких починається з prefix,
+    разом з варіантами з query-параметрами (напр. /clothing/filter?color=red).
+    """
+    if redis_client is None:  # CACHE_ENABLED=false
+        return
+    pattern = f"cache:{prefix}*"
+    try:
+        cursor = 0
+        while True:
+            cursor, keys = await asyncio.wait_for(
+                redis_client.scan(cursor, match=pattern, count=100), timeout=REDIS_TIMEOUT
+            )
+            if keys:
+                await asyncio.wait_for(redis_client.delete(*keys), timeout=REDIS_TIMEOUT)
+            if int(cursor) == 0:
+                break
+        app_logger.debug("Cache cleared for %s", pattern)
+    except asyncio.TimeoutError:
+        app_logger.warning("Redis scan/delete timeout (%.1fs) for pattern %s", REDIS_TIMEOUT, pattern)
+    except (redis.exceptions.RedisError, httpx.HTTPError, UpstashError) as e:
+        app_logger.warning("Redis scan/delete error (%s): %s", type(e).__name__, e)
+    except (OSError, ValueError) as e:
+        app_logger.warning("Unexpected Redis scan/delete error (%s): %s", type(e).__name__, e)
 
 
-async def invalidate_token_cache(token: str) -> None:
+async def invalidate_user_cache(user_id: int | str) -> None:
     """
-    Видаляє закешованого користувача для конкретного access-токена.
-    Викликати при logout, зміні пароля чи бані користувача — інакше
-    закешований `get_current_user` продовжить авторизувати цей токен
-    ще до effective_ttl секунд (максимум 15 хв за замовчуванням).
+    Видаляє закешованого користувача (результат get_current_user).
+    Викликати після будь-якої зміни даних користувача, при logout,
+    зміні пароля чи бані — інакше всі його сесії ще до 15 хв
+    бачитимуть старий стан.
     """
-    cache_key = f"auth:token:{hashlib.sha256(token.encode()).hexdigest()}"
-    await _safe_redis_delete(cache_key)
+    await _safe_redis_delete(_user_cache_key(user_id))

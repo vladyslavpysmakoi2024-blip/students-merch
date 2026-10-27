@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import app.features.auth.crud as crud_auth
 import app.features.user.crud as crud_user
 from app.api.dependencies import get_db
-from app.core.cache import invalidate_token_cache
+from app.core.cache import invalidate_user_cache
 from app.core.config import (
     ACCESS_TOKEN_EXPIRE_IN_MINUTES,
     COOKIE_SAMESITE,
@@ -88,7 +88,12 @@ async def logout(
     access_token: str | None = Cookie(default=None),
 ):
     if access_token:
-        await invalidate_token_cache(access_token)
+        try:
+            payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=["HS256"])
+        except jwt.PyJWTError:
+            payload = {}
+        if payload.get("sub"):
+            await invalidate_user_cache(payload["sub"])
 
     samesite_policy, is_https = _cookie_params(request)
 
