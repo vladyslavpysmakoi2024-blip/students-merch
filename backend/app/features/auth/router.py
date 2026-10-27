@@ -2,6 +2,7 @@ import jwt
 from authlib.integrations.starlette_client import OAuth, OAuthError
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.features.auth.crud as crud_auth
@@ -40,7 +41,12 @@ async def register_user(user_data: UserCreate, db: AsyncSession = Depends(get_db
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exist")
 
-    new_user = await crud_user.create_user(db, user_data)
+    try:
+        new_user = await crud_user.create_user(db, user_data)
+    except IntegrityError as exc:
+        # Два одночасні запити пройшли перевірку вище — унікальний індекс на email відсікає другий
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="User already exist") from exc
     return {"message": "User created successfully", "user": new_user}
 
 

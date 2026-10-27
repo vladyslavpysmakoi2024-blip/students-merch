@@ -18,7 +18,7 @@ class User(Base):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    email: Mapped[str | None] = mapped_column(Text, nullable=True)
+    email: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     password: Mapped[str | None] = mapped_column(Text, nullable=True)
     first_name: Mapped[str | None] = mapped_column(Text, nullable=True)
     last_name: Mapped[str | None] = mapped_column(Text, nullable=True)
