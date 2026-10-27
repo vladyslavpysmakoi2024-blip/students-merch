@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import CORS_ORIGINS, DEBUG, FRONTEND_URL
+from app.core.rate_limit import security_middleware
 from app.db.database import Base, engine
 from app.features.admin.router import router as admin_router
 from app.features.auth.router import router as auth_router
@@ -26,6 +27,7 @@ truststore.inject_into_ssl()
 
 STARTUP_MIGRATIONS = [
     'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS completed_survey BOOLEAN NOT NULL DEFAULT FALSE;',
+    'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_banned BOOLEAN NOT NULL DEFAULT FALSE;',
     "ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS assigned_package_id TEXT;",
     ("ALTER TABLE survey_response ADD COLUMN IF NOT EXISTS is_package_confirmed BOOLEAN NOT NULL DEFAULT FALSE;"),
     (
@@ -55,6 +57,8 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=os.getenv("SESSION_SECRET_KEY", "your-fallback-secret-key-12345"),
 )
+# Додано до CORS, тож CORS (останній = зовнішній) обгортає наші 403/429 і браузер бачить помилку
+app.middleware("http")(security_middleware)
 
 origins = [orig.strip().rstrip("/") for orig in CORS_ORIGINS.split(",") if orig.strip()]
 if FRONTEND_URL:

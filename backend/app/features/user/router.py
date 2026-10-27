@@ -9,6 +9,7 @@ import app.features.user.crud as crud_user
 from app.api.dependencies import get_current_user, get_db
 from app.core.cache import invalidate_user_cache
 from app.core.config import CLOUDINARY_URL
+from app.core.rate_limit import rate_limit
 from app.core.schemas import MessageResponse
 from app.core.security import verify_password
 from app.core.utils import require_cloudinary, validate_image_file
@@ -55,7 +56,7 @@ async def update_current_user(
         ) from exc
 
 
-@router.post("/me/avatar")
+@router.post("/me/avatar", dependencies=[Depends(rate_limit("upload", 10, 60, per_user=True))])
 async def upload_avatar(
     file: UploadFile = File(...),  # noqa
     db: AsyncSession = Depends(get_db),
@@ -104,7 +105,11 @@ async def delete_avatar(db: AsyncSession = Depends(get_db), current_user: User =
     return {"avatar_url": updated_user.avatar_url}
 
 
-@router.patch("/me/password", response_model=MessageResponse)
+@router.patch(
+    "/me/password",
+    response_model=MessageResponse,
+    dependencies=[Depends(rate_limit("password", 5, 600, per_user=True))],
+)
 async def change_password(
     payload: UserPasswordUpdate,
     current_user: User = Depends(get_current_user),

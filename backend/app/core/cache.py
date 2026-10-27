@@ -109,6 +109,52 @@ async def _safe_redis_delete(cache_key: str) -> None:
         app_logger.warning("Unexpected Redis delete error (%s): %s", type(e).__name__, e)
 
 
+# INCR + EXPIRE атомарно за один запит: окремий EXPIRE міг впасти й лишити лічильник без TTL назавжди
+_INCR_WITH_TTL = (
+    "local c = redis.call('INCR', KEYS[1]) "
+    "if redis.call('TTL', KEYS[1]) < 0 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end "
+    "return c"
+)
+
+
+async def _safe_redis_incr(cache_key: str, window: int) -> int:
+    """
+    INCR лічильника з TTL=window (ставиться, якщо TTL ще немає).
+    Повертає 0 при вимкненому кеші чи будь-якій помилці — rate limit fail-open.
+    """
+    if redis_client is None:  # CACHE_ENABLED=false
+        return 0
+    try:
+        if isinstance(redis_client, local_redis.Redis):
+            call = redis_client.eval(_INCR_WITH_TTL, 1, cache_key, window)
+        else:
+            call = redis_client.eval(_INCR_WITH_TTL, keys=[cache_key], args=[str(window)])
+        return int(await asyncio.wait_for(call, timeout=REDIS_TIMEOUT))
+    except asyncio.TimeoutError:
+        app_logger.warning("Redis incr timeout (%.1fs) for key %s", REDIS_TIMEOUT, cache_key)
+    except (redis.exceptions.RedisError, httpx.HTTPError, UpstashError) as e:
+        app_logger.warning("Redis incr error (%s): %s", type(e).__name__, e)
+    except (OSError, ValueError, TypeError) as e:
+        app_logger.warning("Unexpected Redis incr error (%s): %s", type(e).__name__, e)
+    return 0
+
+
+async def _safe_redis_ttl(cache_key: str) -> int | None:
+    """Скільки секунд лишилось жити ключу; None, якщо TTL немає чи Redis недоступний."""
+    if redis_client is None:  # CACHE_ENABLED=false
+        return None
+    try:
+        ttl = int(await asyncio.wait_for(redis_client.ttl(cache_key), timeout=REDIS_TIMEOUT))
+        return ttl if ttl > 0 else None
+    except asyncio.TimeoutError:
+        app_logger.warning("Redis ttl timeout (%.1fs) for key %s", REDIS_TIMEOUT, cache_key)
+    except (redis.exceptions.RedisError, httpx.HTTPError, UpstashError) as e:
+        app_logger.warning("Redis ttl error (%s): %s", type(e).__name__, e)
+    except (OSError, ValueError, TypeError) as e:
+        app_logger.warning("Unexpected Redis ttl error (%s): %s", type(e).__name__, e)
+    return None
+
+
 def cache_site_response(ttl: int = 3600, normalizing: bool = False):
     """
     Асинхронний декоратор для кешування відповідей FastAPI.
@@ -219,7 +265,8 @@ def _serialize_user_for_cache(user: User) -> dict:
 
 
 def _user_cache_key(user_id: int | str) -> str:
-    return f"auth:user:{user_id}"
+    # v2: додано is_banned — старі записи без нього інакше дали б lazy load на кеш-хіті
+    return f"auth:user:v2:{user_id}"
 
 
 def cache_user_token(ttl: int = 900):

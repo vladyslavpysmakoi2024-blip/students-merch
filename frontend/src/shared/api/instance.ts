@@ -23,14 +23,15 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 }
 
 let isRefreshing = false;
-let refreshSubscribers: Array<() => void> = [];
+// error is set when refresh failed: queued requests must reject, not hang forever
+let refreshSubscribers: Array<(error?: unknown) => void> = [];
 
-const subscribeTokenRefresh = (cb: () => void) => {
+const subscribeTokenRefresh = (cb: (error?: unknown) => void) => {
   refreshSubscribers.push(cb);
 };
 
-const onRefreshed = () => {
-  refreshSubscribers.forEach((cb) => cb());
+const onRefreshed = (error?: unknown) => {
+  refreshSubscribers.forEach((cb) => cb(error));
   refreshSubscribers = [];
 };
 
@@ -67,12 +68,16 @@ api.interceptors.response.use(
           return api(originalRequest);
         } catch (refreshError) {
           isRefreshing = false;
-          refreshSubscribers = [];
+          onRefreshed(refreshError ?? new Error("Token refresh failed"));
           return Promise.reject(refreshError);
         }
       } else {
-        return new Promise((resolve) => {
-          subscribeTokenRefresh(() => {
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh((refreshError) => {
+            if (refreshError) {
+              reject(refreshError);
+              return;
+            }
             originalRequest._retry = true;
             resolve(api(originalRequest));
           });

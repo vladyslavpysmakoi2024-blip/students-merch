@@ -8,6 +8,8 @@ from app.db.database import AsyncSessionLocal
 from app.features.user.crud import get_user
 from app.features.user.models import User
 
+BANNED_DETAIL = "Account is banned"
+
 
 async def get_db():
     async with AsyncSessionLocal() as session:
@@ -17,9 +19,9 @@ async def get_db():
             await session.close()
 
 
-# Залежність для отримання поточного користувача
+# Кешована частина; бан перевіряється окремо в get_current_user, бо при кеш-хіті тіло не виконується
 @cache_user_token(ttl=900)
-async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
+async def _get_user_from_token(request: Request, db: AsyncSession = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -48,6 +50,13 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
     if user is None:
         raise credentials_exception
 
+    return user
+
+
+# Залежність для отримання поточного користувача
+async def get_current_user(user: User = Depends(_get_user_from_token)):
+    if user.is_banned:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=BANNED_DETAIL)
     return user
 
 
